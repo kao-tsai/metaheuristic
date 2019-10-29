@@ -15,7 +15,7 @@ class ga{
 	public:
 		typedef vector<int> solution;
         typedef vector<solution> population;
-		ga(int,int,int,string,int);
+		ga(string,int,int,int,string,int);
 		solution run();
 	private:
 		void init();
@@ -31,6 +31,7 @@ private:
 	int numIter;
 	int numPatterns;
 	string filename;
+    string selection;
 	population currentSol;
 	solution obj_value;
 	int best_obj_value;
@@ -39,7 +40,7 @@ private:
 	double mutation_pro;
     double crossover_pro;
 };
-ga::ga(int xNumRuns,
+ga::ga(string xSelection,int xNumRuns,
 int xNumIter,
 int xNumPatterns,
 string xfilename,
@@ -47,6 +48,7 @@ int xPopulationNum
 )
 {
     srand(time(0));
+    selection=xSelection;
     numRuns=xNumRuns;
 	numIter=xNumIter;
 	numPatterns=xNumPatterns;
@@ -137,48 +139,7 @@ ga::population ga::TS(population all_sol){
     }
     return new_pop;
 }
-/*
-ga::population ga::crossover(population all_sol){
-        int cut,parent1,parent2;
-        population new_pop;
-        solution temp_p1;
-        solution temp_p2;
-         solution temp(numPatterns);
 
-        for(int i=0;i<population_num;i=i+2){
-            parent1 = rand() % population_num;
-            do {
-                parent2 = rand() % population_num;
-            } while (parent1==parent2);
-
-            cut=rand()%(numPatterns-1);
-            temp_p1=all_sol[parent1];
-            temp_p2=all_sol[parent2];
-            temp=temp_p1;
-
-            //crossover probability
-            double r=(double)rand()/RAND_MAX;
-            if(r<crossover_pro)
-                for (int j = 0; j < cut; j++){
-                    temp_p1[j] = temp_p2[j];
-                    temp_p2[j] = temp[j];
-                }
-            
-            if(i==population_num-1)
-            {
-                if(evaluation(temp_p1)>evaluation(temp_p2))
-                    new_pop.push_back(temp_p1);
-                else
-                    new_pop.push_back(temp_p2);
-            }
-            else{
-                new_pop.push_back(temp_p1);
-                new_pop.push_back(temp_p2);
-            }
-        }
-        return new_pop;
-}
-*/
 ga::population ga::crossover(population all_sol){
         int cut,parent1,parent2;
         population new_pop;
@@ -236,9 +197,11 @@ ga::solution ga::run(){
         for(int j=0;j<numIter;j++){
             
             obj_value=fitness(currentSol);
+            if(selection=="ts")
+                currentSol=TS(currentSol);
+            else if(selection=="rws")
+                currentSol=RWS(currentSol);
             
-            currentSol=TS(currentSol);
-          
             currentSol=crossover(currentSol);
             currentSol=mutation(currentSol);
 
