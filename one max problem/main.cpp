@@ -31,14 +31,16 @@ int main(int argc,char **argv)
        
         aco search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),argv[5],atoi(argv[6]));
         aco::solution sol=search.run();
-        //cout<<sol.size()<<"ehy";
         for(int i=0;i<sol.size();i++){
-            cout<<sol[i];
-            if(i==sol.size()-1);
+             if(i==sol.size()-1){
+                cout<<endl<<"best_obj_value:"<<fixed<<setprecision(3)<<sol[i]<<endl;    
                 break;
-            cout<<" ";
+             }
+            cout<<fixed<<setprecision(0)<<sol[i]<<" ";
+           
         }
-        cout<<endl;
+        
+        
 
     }
     return 0;
