@@ -92,7 +92,7 @@ void goa::init(){
     solution tmp;
     int count_dim=0;
     if (!filename.empty()){
-        ifstream file("GOA/"+filename);
+        ifstream file("dataset/"+filename);
 		node.clear();
         stringstream ss;
         //決定問題的維度
@@ -100,16 +100,16 @@ void goa::init(){
         ss<<line;
         while(getline(ss,con,','))
             count_dim++;
-        dim=count_dim-1;
+        dim=count_dim;
         //紀錄各維度最大最小值
         ss.clear();
         ss=stringstream(line);
         //abalone
-        getline(ss,con,',');
+        //getline(ss,con,',');
         //abalone
         for(int i=0;i<dim;i++){
             getline(ss,con,',');
-            tmp.push_back((double)atof(con.c_str()));
+            tmp.push_back((double)stod(con));
             if(i==0){
                 dmin=tmp[i];
                 dmax=tmp[i];
@@ -126,12 +126,12 @@ void goa::init(){
             ss.clear();
             ss=stringstream(line);
             // abalone
-            getline(ss,con,',');
+            //getline(ss,con,',');
             // abalone
             for(int i=0;i<dim;i++){   
                 
                 getline(ss,con,',');
-                tmp[i]=(double)atof(con.c_str());
+                tmp[i]=(double)stod(con);
             }
             node.push_back(tmp);
             //開始尋找各維度最大最小值----------
@@ -145,6 +145,8 @@ void goa::init(){
             }
         }
         file.close();
+        // cout<<"min:"<<dmin<<endl;
+        // cout<<"max:"<<dmax<<endl;
         //currentSol計得初始化;
         currentSol=population(population_num,centroid(cluster_num,solution(dim)));
     }
@@ -189,7 +191,7 @@ double goa::dis_cal(solution p1,solution p2){
 }
 
 double goa::frand(){
-    double f = (double)(rand()%RAND_MAX) / RAND_MAX;
+    double f = (double)rand()/ RAND_MAX;
     return dmin + f * (dmax - dmin);
 }
 double goa::coef_c(int cur_iter){
@@ -217,7 +219,7 @@ goa::centroid goa::transition(population sol,int sol_num,double c){
             //     tmp_dis=0.00001;
             for(int k=0;k<dim;k++){
                 //作正規化
-                normalize_val=(tmp_dis-dmin)/(dmax-dmin)*3+1;
+                normalize_val=((fabs(sol[i][j][k]-sol[sol_num][j][k])-dmin)/(dmax-dmin))*3+1;
                 tmp_sol[j][k]+=c*((dmax-dmin)/2.0)*deg_forces(normalize_val)*((sol[i][j][k]-sol[sol_num][j][k])/tmp_dis);
             }    
         }
@@ -234,12 +236,12 @@ goa::centroid goa::transition(population sol,int sol_num,double c){
                 flag=false;
                 if(tmp_sol[i][j]<dmin)
                 {
-                    tmp_sol[i][j]=tmp_sol[i][j]+(dmax-dmin);
+                    tmp_sol[i][j]=tmp_sol[i][j]+(dmax-dmin)*((double)rand()/RAND_MAX);
                     flag=true;
                 }
                 else if(tmp_sol[i][j]>dmax)
                 {
-                    tmp_sol[i][j]= tmp_sol[i][j]-(dmax-dmin);
+                    tmp_sol[i][j]= tmp_sol[i][j]-(dmax-dmin)*((double)rand()/RAND_MAX);
                     flag=true;
                 }
             } 
@@ -280,23 +282,27 @@ goa::centroid goa::run(){
                 {
                     best_obj_value=tmp_best_obj_value;
                     best_sol=tmp_sol[k];
-                }
-                */
+                }*/
+                
             }
 
             
-            fitness(currentSol);
-            cout<<"Iteration"<<j<<":"<<best_obj_value<<endl;
+             fitness(currentSol);
+            //cout<<"Iteration"<<j<<":"<<best_obj_value<<endl;
             iter_obj_avg[j]+=best_obj_value;
             
         }
          
     }
-    
-    for(int i=0;i<numIter;i++)
+
+    ofstream plot_data("graph/plot_data/goa_"+filename);
+    for(int i=0;i<numIter;i++){
         cout<<fixed<<setprecision(3)<<(double)iter_obj_avg[i]/numRuns<<endl;
-    
-    
+        plot_data<<i<<" ";
+        plot_data<<fixed<<setprecision(3)<<(double)iter_obj_avg[i]/numRuns<<endl;
+    }
+    plot_data.close();
+
     return best_sol;
 
 }

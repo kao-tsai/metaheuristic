@@ -17,7 +17,7 @@ class ga{
 		typedef vector<double> solution;
         typedef vector<solution> centroid;
         typedef vector<centroid> population;
-		ga(int,int,string,int,int);
+		ga(int,int,string,int,int,double,double);
 		centroid run();
 	private:
 		void init();
@@ -27,9 +27,10 @@ class ga{
         double frand(double,double);
         void mutation(population&);
         void fitness(population&);
-		population RWS(population);
         population TS(population);
-        population crossover(population);
+        population crossover(centroid);
+        centroid vec_dim_transfer(population);
+        population vec_dim_transfer(centroid);
 private:
 	int numRuns;
 	int numIter;
@@ -38,7 +39,7 @@ private:
     centroid  node;
 	population currentSol;
 	solution all_obj_value;
-	int best_obj_value;
+	double best_obj_value;
 	centroid best_sol;
     int population_num;
     int cluster_num;
@@ -52,7 +53,9 @@ ga::ga(int xNumRuns,
 int xNumIter,
 string xfilename,
 int xPopulationNum,
-int x_cluster_num
+int x_cluster_num,
+double xcrossover_pro,
+double xmutation_pro
 )
 {
     srand(time(0));
@@ -61,98 +64,29 @@ int x_cluster_num
 	filename=xfilename;
     population_num=xPopulationNum;
     cluster_num=x_cluster_num;
+    crossover_pro=xcrossover_pro;
+    mutation_pro=xmutation_pro;
+    
 }
 
 void ga::fitness(population& sol) {
     double tmp_best;
 	for (int i = 0; i < population_num; i++){
-            tmp_best=evaluation(sol[i]);
-            if(tmp_best<best_obj_value){
-                    best_obj_value=tmp_best;
-                    best_sol=sol[i];
-            }
+        tmp_best=evaluation(sol[i]);
+        all_obj_value[i]=tmp_best;
+        if(tmp_best<best_obj_value){
+                best_obj_value=tmp_best;
+                best_sol=sol[i];
+        }
 	}
 }
-/*
+
 void ga::init(){
     string line,con;
     solution tmp;
     int count_dim=0;
     if (!filename.empty()){
-        ifstream file("GA/"+filename);
-		node.clear();
-        stringstream ss;
-        //決定問題的維度
-        getline(file,line);
-        
-        ss<<line;
-        while(getline(ss,con,',')){    
-            count_dim++;
-        }
-        dim=count_dim-1;
-        //紀錄各維度最大最小值
-        ss.clear();
-        ss=stringstream(line);
-        dim_minmax.resize(dim);
-        //abalone
-        // getline(ss,con,',');
-        //abalone
-        for(int i=0;i<dim;i++){
-            getline(ss,con,',');
-            tmp.push_back((double)atof(con.c_str()));
-            //存最小值
-            dim_minmax[i].push_back(tmp[i]);
-            //存最大值
-            dim_minmax[i].push_back(tmp[i]);
-        }
-        node.push_back(tmp);
-        
-        //建立初始節點
-        
-		while(getline(file,line)){
-            ss.clear();
-            ss=stringstream(line);
-            //abalone
-            //getline(ss,con,',');
-            //abalone
-            for(int i=0;i<dim;i++){   
-                getline(ss,con,',');
-                tmp[i]=(double)atof(con.c_str());
-            }
-            node.push_back(tmp);
-            //開始尋找各維度最大最小值----------
-            for(int i=0;i<dim;i++){
-                //存最小值
-                if(tmp[i]<dim_minmax[i][0])
-                    dim_minmax[i][0]=tmp[i];
-                //存最大值
-                else if(tmp[i]>dim_minmax[i][1])
-                    dim_minmax[i][1]=tmp[i];
-            }
-        }
-	file.close();
-  
-    //currentSol計得初始化;
-    currentSol.resize(population_num);
-    for(int i=0;i<population_num;i++){
-        currentSol[i].resize(cluster_num);
-        for(int j=0;j<cluster_num;j++)
-            currentSol[i][j].resize(dim);
-    }
-    
-    }
-    else{
-		cout<<"Need Input!"<<endl;
-    }
-    
-}
-*/
-void ga::init(){
-    string line,con;
-    solution tmp;
-    int count_dim=0;
-    if (!filename.empty()){
-        ifstream file("GA/"+filename);
+        ifstream file("dataset/"+filename);
 		node.clear();
         stringstream ss;
         //決定問題的維度
@@ -161,14 +95,17 @@ void ga::init(){
         ss<<line;
         while(getline(ss,con,','))
             count_dim++;
-        dim=count_dim-1;
+
+        dim=count_dim;
         //紀錄各維度最大最小值
         ss.clear();
         ss=stringstream(line);
-     
+        // abalone
+        //getline(ss,con,',');
+        // abalone
         for(int i=0;i<dim;i++){
             getline(ss,con,',');
-            tmp.push_back((double)atof(con.c_str()));
+            tmp.push_back((double)stod(con));
             if(i==0){
                 dmin=tmp[i];
                 dmax=tmp[i];
@@ -185,9 +122,12 @@ void ga::init(){
 		while(getline(file,line)){
             ss.clear();
             ss=stringstream(line);
+            // abalone
+            //getline(ss,con,',');
+            // abalone
             for(int i=0;i<dim;i++){   
                 getline(ss,con,',');
-                tmp[i]=(double)atof(con.c_str());
+                tmp[i]=(double)stod(con);
             }
             node.push_back(tmp);
             //開始尋找各維度最大最小值----------
@@ -203,12 +143,8 @@ void ga::init(){
         file.close();
     
         //currentSol計得初始化;
-        currentSol.resize(population_num);
-        for(int i=0;i<population_num;i++){
-            currentSol[i].resize(cluster_num);
-            for(int j=0;j<dim;j++)
-                currentSol[i][j].resize(dim);
-        }
+        currentSol=population(population_num,centroid(cluster_num,solution(dim)));
+        all_obj_value=solution(population_num);
 
     }
     else{
@@ -216,21 +152,6 @@ void ga::init(){
     }
     
 }
-
-/*
-void ga::generate_new_solutions(){
-    
-    for (int i = 0; i < population_num; i++){
-        for(int j=0;j<cluster_num;j++)
-            for(int k=0;k<dim;k++){
-                currentSol[i][j][k]=frand(dim_minmax[k][0],dim_minmax[k][1]);
-            }
-    }
-
-    best_obj_value=evaluation(currentSol[0]);
-    best_sol=currentSol[0];
-}
-*/
 
 void ga::generate_new_solutions(){
     solution rand_centroid;
@@ -270,15 +191,30 @@ double ga::frand(double fmin,double fmax){
     double f = (double)rand() / RAND_MAX;
     return fmin + f * (fmax - fmin);
 }
-
+ga::centroid ga::vec_dim_transfer(population sol){
+    centroid two_dim_sol=centroid(population_num,solution(cluster_num*dim));
+    for(int i=0;i<population_num;i++)
+        for(int j=0;j<cluster_num;j++)
+            for(int k=0;k<dim;k++)
+                two_dim_sol[i][j*dim+k]=sol[i][j][k];
+    return two_dim_sol;
+}
+ga::population ga::vec_dim_transfer(centroid sol){
+    population three_dim_sol=population(population_num,centroid(cluster_num,solution(dim)));
+    for(int i=0;i<population_num;i++)
+        for(int j=0;j<cluster_num;j++)
+            for(int k=0;k<dim;k++)
+                three_dim_sol[i][j][k]=sol[i][j*dim+k];
+    return three_dim_sol;
+}
 
 //----------------------------------------------------------------------Selection-------------------------------------------------------------------------------//
 ga::population ga::TS(population all_sol){
     population new_pop;
     bool flag;
     int tournament_size=3,tmp,candidate_best;
-    solution candidate;
-    double min;
+    vector<int> candidate;
+    double tmp_min;
     for(int i=0;i<population_num;i++){
         candidate.clear();
         do{
@@ -287,82 +223,90 @@ ga::population ga::TS(population all_sol){
 
         for(int j=0;j<candidate.size();j++)
             if(tmp==candidate[j]){
-                flag=~flag;
+                flag=false;
                 break;
             }
         if(flag)
             candidate.push_back(tmp);  
         }while(candidate.size()<tournament_size);
         
-
-        min=evaluation(all_sol[candidate[0]]);
+        tmp_min=all_obj_value[candidate[0]];
+        candidate_best=candidate[0];
 
         for(int j=1;j<tournament_size;j++){
-            tmp=all_obj_value[candidate[j]];
-            if(tmp<min)
+            
+            if(all_obj_value[candidate[j]]<tmp_min)
             {
-                min=tmp;
+                tmp_min=all_obj_value[candidate[j]];
                 candidate_best=candidate[j];
             }
         }
-
+        
         new_pop.push_back(all_sol[candidate_best]);
     }
+    
     return new_pop;
 }
 //----------------------------------------------------------------------Crossover-------------------------------------------------------------------------------//
-ga::population ga::crossover(population all_sol){
-    int parent1,parent2,find_next,start_position;
-
-    solution temp_sol;
-    population new_pop;
-
+ga::population ga::crossover(centroid all_sol){
+    int parent1,parent2,add_pos;
+    centroid new_pop=centroid(population_num,solution(cluster_num*dim));
     while(all_sol.size()>0){
         
         if(all_sol.size()==1){
-            new_pop.push_back(all_sol[0]);
+            new_pop[new_pop.size()-1]=all_sol[0];
             break;
         }
         parent1=rand()%all_sol.size();
         do{
             parent2=rand()%all_sol.size();
         }while(parent2==parent1);
-        temp_sol=all_sol[parent1];
+
+        add_pos=population_num-all_sol.size();
+        new_pop[add_pos]=all_sol[parent1];
+        new_pop[add_pos+1]=all_sol[parent2];
+
         double r=(double)rand()/RAND_MAX;
         if(r<crossover_pro){
-            
-            start_position=rand()%city_num;
-            find_next=start_position;
-            need_crossover[start_position]=0;
-            //排除不需要crossover的基因（建立cycle）
-            while(all_sol[parent1][start_position]!=all_sol[parent2][find_next])
-                for(int i=0;i<city_num;i++)
-                    if(all_sol[parent1][i]==all_sol[parent2][find_next])
-                    {
-                        need_crossover[i]=0;
-                        find_next=i;
-                        break;
-                    }
+            int start_position=rand()%(dim*cluster_num-1);
 
-            
-            //做crossover（選0的部份）
-            for(int i=0;i<city_num;i++)
-                if(need_crossover[i])
-                {
-                    all_sol[parent1][i]=all_sol[parent2][i];
-                    all_sol[parent2][i]=temp_sol[i];
-                }
-                
+            //做crossover
+            for(int i=0;i<=start_position;i++){
+                new_pop[add_pos][i]=all_sol[parent2][i];
+                new_pop[add_pos+1][i]=all_sol[parent1][i];
+            }
+   
         }
-        new_pop.push_back(all_sol[parent1]);
-        new_pop.push_back(all_sol[parent2]);
         all_sol.erase(all_sol.begin()+parent1);
         all_sol.erase(all_sol.begin()+parent2);
     }
-    return new_pop;
+    return vec_dim_transfer(new_pop);
 }
 //----------------------------------------------------------------------Mutation--------------------------------------------------------------------------------//
-
+void ga::mutation(population& all_sol){
+    for(int i=0;i<population_num;i++){
+        double r=(double)rand()/RAND_MAX;
+        if(r<mutation_pro){
+            int mut_gene=rand()%(dim*cluster_num);
+            r=((double)rand()/RAND_MAX)*2-1;
+            all_sol[i][mut_gene/dim][mut_gene%dim]=all_sol[i][mut_gene/dim][mut_gene%dim]*r*2;
+            bool flag=true;
+            while(flag){
+                flag=false;
+                if(all_sol[i][mut_gene/dim][mut_gene%dim]<dmin)
+                {
+                    all_sol[i][mut_gene/dim][mut_gene%dim]+=(dmax-dmin)*((double)rand()/RAND_MAX);
+                    flag=true;
+                }
+                else if(all_sol[i][mut_gene/dim][mut_gene%dim]>dmax)
+                {
+                   all_sol[i][mut_gene/dim][mut_gene%dim]-=(dmax-dmin)*((double)rand()/RAND_MAX);
+                    flag=true;
+                }
+            } 
+        }
+    }
+}
 
 ga::centroid ga::run(){
     int count=0;
@@ -377,25 +321,25 @@ ga::centroid ga::run(){
         count++;
         
         generate_new_solutions();
-
-
         avg_obj_value=0.0;
 
         for(int j=0;j<numIter;j++){
-
-
-            currentSol=tmp_sol;
-            
             fitness(currentSol);
+            currentSol=TS(currentSol);
+            currentSol=crossover(vec_dim_transfer(currentSol));
+            mutation(currentSol);
             iter_obj_avg[j]+=best_obj_value;
-            
         }
          
     }
     
-    for(int i=0;i<numIter;i++)
+    ofstream plot_data("graph/plot_data/ga_"+filename);
+    for(int i=0;i<numIter;i++){
         cout<<fixed<<setprecision(3)<<(double)iter_obj_avg[i]/numRuns<<endl;
-    
+        plot_data<<i<<" ";
+        plot_data<<fixed<<setprecision(3)<<(double)iter_obj_avg[i]/numRuns<<endl;
+    }
+    plot_data.close();
     return best_sol;
 
 }
