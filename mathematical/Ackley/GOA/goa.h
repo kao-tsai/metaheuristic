@@ -149,13 +149,13 @@ goa::solution goa::transition(population sol,int sol_num,double c){
 
         for(int j=0;j<dim;j++){
             //作正規化
-            normalize_val=((fabs(sol[i][j]-sol[sol_num][j]))/(upperbound-lowerbound))*3+1;
+            //normalize_val=((fabs(sol[i][j]-sol[sol_num][j]))/(upperbound-lowerbound))*3+1;
             if(fabs(normalize_val>2.079))
                 normalize_val=fabs(normalize_val);
             else if(normalize_val==2.079)
                 normalize_val=0;
 
-            //normalize_val=(tmp_dis/(upperbound-lowerbound))*3+1;
+            normalize_val=(tmp_dis/(upperbound-lowerbound))*3+1;
             tmp_sol[j]+=c*((upperbound-lowerbound)/2.0)*deg_forces(normalize_val)*((sol[i][j]-sol[sol_num][j])/tmp_dis);
         }    
         

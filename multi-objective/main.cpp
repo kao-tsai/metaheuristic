@@ -3,8 +3,8 @@
 #include<stdlib.h>
 #include<string.h>
 #include<vector>
-
-#include"NSGAII/bnsgaii.h"
+#include"evaluate.cpp"
+#include"MOPSO/mopso.h"
 using namespace std;
 /*
 vector<int>test1(vector<int> th){
@@ -23,17 +23,17 @@ int main(int argc,char **argv)
     
     if(!strcmp(argv[1],"bnsga2"))
     {
-        bnsgaii search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atof(argv[5]),atof(argv[6]),argv[7]);
-        vector<vector<double>> sol=search.run();
+        // bnsgaii search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atof(argv[5]),atof(argv[6]),argv[7]);
+        // vector<vector<double>> sol=search.run();
         /*
         for(int i=0;i<sol.size();i++)
             cout<<sol[i];
         cout<<endl;*/
-        for(int i=0;i<sol.size();i++){
-            for(int j=0;j<sol[i].size();j++)
-                cout<<sol[i][j]<<" ";
-            cout<<endl;
-        }
+        // for(int i=0;i<sol.size();i++){
+        //     for(int j=0;j<sol[i].size();j++)
+        //         cout<<sol[i][j]<<" ";
+        //     cout<<endl;
+        // }
 
         /*
         typedef vector<int> solution;
@@ -59,6 +59,36 @@ int main(int argc,char **argv)
         two=two2;
         cout<<two.size()<<endl;*/
         
+        old_IGD("FON",2,500);
+        old_IGD("SCH",2,500);
+    
+
+        old_IGD("ZDT1",2,500);
+        old_IGD("ZDT2",2,500);
+        old_IGD("ZDT3",2,500);
+        old_IGD("ZDT4",2,100);
+        old_IGD("ZDT6",2,500);
+    }
+    else if(!strcmp(argv[1],"mopso")){
+        /*
+        vector<int> test(5,1);
+        test=vector<int>(6,2);
+        cout<<test.size()<<endl;
+        for(int i=0;i<test.size();i++)
+            cout<<test[i]<<endl;
+        test=vector<int>(10);
+        cout<<test.size()<<endl;
+        for(int i=0;i<test.size();i++)
+            cout<<i<<":"<<test[i]<<endl;*/
+        
+        mopso search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atof(argv[5]),atoi(argv[6]),argv[7]);
+        mopso::population sol=search.run();
+        
+        for(int i=0;i<sol.size();i++){
+            for(int j=0;j<sol[i].size();j++)
+                cout<<sol[i][j]<<" ";
+            cout<<endl;
+        }
     }
 
     return 0;

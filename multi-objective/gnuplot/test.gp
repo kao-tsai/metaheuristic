@@ -3,7 +3,9 @@ set xlabel 'f_1'
 set ylabel 'f_2'
 set title ARG2
 set grid
-set term png enhanced font 'Verdana,10'
+#set term png enhanced font 'Verdana,10'
+#set terminal pdf
+set terminal svg
 set key left bottom
 set output ARG1
 

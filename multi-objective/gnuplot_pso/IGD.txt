@@ -1,0 +1,5 @@
+Algorithm:mopso
+Number of runs:1
+Number of iterations:100
+Number of population:500
+6

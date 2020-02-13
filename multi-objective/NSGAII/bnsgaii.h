@@ -47,6 +47,7 @@ private:
     solution nbits;
     
 };
+
 bnsgaii::bnsgaii(int xNumRuns,
 int xNumIter,
 int xPopulationNum,
@@ -467,6 +468,8 @@ vector<vector<double>> bnsgaii::fitness(vector<vector<double>> & all_sol) {
         return ZDT4(all_sol);
     else if(problem_func=="ZDT6")
         return ZDT6(all_sol);
+    else if(problem_func=="UF1")
+        return UF1(all_sol);
 
 }
 
