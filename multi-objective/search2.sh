@@ -29,14 +29,15 @@ pop_num=500
 #  ./search mopso $run 3000 100 30 200 ZDT1 > pareto/ZDT1/ZDT1_mopso_0.txt
 #  gnuplot -c gnuplot_pso/test.gp gnuplot_pso/mopso_ZDT1.png ZDT1 0 1 0 1 pareto/ZDT1/ZDT1_mopso_0.txt opt/ZDT1_opt.txt
 
- ./search mopso $run 3000 100 30 200 ZDT2 > pareto/ZDT2/ZDT2_mopso_0.txt
-gnuplot -c gnuplot_pso/test.gp gnuplot_pso/mopso_ZDT2.png ZDT2 0 1 0 1.5 pareto/ZDT2/ZDT2_mopso_0.txt opt/ZDT2_opt.txt
+
+#  ./search mopso $run 3000 100 20 100 ZDT2 > pareto/ZDT2/ZDT2_mopso_0.txt
+# gnuplot -c gnuplot_pso/test.gp gnuplot_pso/mopso_ZDT2.png ZDT2 0 1 0 1.5 pareto/ZDT2/ZDT2_mopso_0.txt opt/ZDT2_opt.txt
 
 # ./search mopso $run 3000 100 30 200 ZDT3 > pareto/ZDT3/ZDT3_mopso_0.txt
 # gnuplot -c gnuplot_pso/test.gp gnuplot_pso/mopso_ZDT3.png ZDT3 0 1 -1 1 pareto/ZDT3/ZDT3_mopso_0.txt opt/ZDT3_opt.txt
 
-# ./search mopso $run 1000 200 30 200 ZDT4 > pareto/ZDT4/ZDT4_mopso_0.txt
-# gnuplot -c gnuplot_pso/test.gp gnuplot_pso/mopso_ZDT4.png ZDT4 0 1 0 2 pareto/ZDT4/ZDT4_mopso_0.txt opt/ZDT4_opt.txt
+./search mopso $run 3000 500 10 200 ZDT4 > pareto/ZDT4/ZDT4_mopso_0.txt
+gnuplot -c gnuplot_pso/test.gp gnuplot_pso/mopso_ZDT4.png ZDT4 0 1 0 2 pareto/ZDT4/ZDT4_mopso_0.txt opt/ZDT4_opt.txt
 
 # ./search mopso $run 100 100 30 200 ZDT6 > pareto/ZDT6/ZDT6_mopso_0.txt
 # gnuplot -c gnuplot_pso/test.gp gnuplot_pso/mopso_ZDT6.png ZDT6 0.2 1 0 1 pareto/ZDT6/ZDT6_mopso_0.txt opt/ZDT6_opt.txt

@@ -1,0 +1,7 @@
+Algorithm:goa
+Number of runs:1
+Number of iterations:500
+Name of file:
+Number of population:30
+transform time:0.000942
+Loop time:0.001282

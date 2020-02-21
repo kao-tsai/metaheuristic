@@ -12,7 +12,7 @@ pop_num=500
 #./exe run iter dataset
 #gnuplot -c exename filename dataname x1 x2 y1 y2 datafile
 
-./search mopso $run 100 100 30 100 SCH  > pareto/SCH/SCH_mopso_0.txt
+# ./search mopso $run 100 100 30 100 SCH  > pareto/SCH/SCH_mopso_0.txt
 
 # ./search bnsga2 $run 100 500 0.9 0.1 FON > pareto/FON/FON_mnsga2_0.txt
 # gnuplot -c gnuplot/test.gp gnuplot/NSGA_FON.svg FON 0 1 0 1 pareto/FON/FON_mnsga2_0.txt opt/FON_opt.txt

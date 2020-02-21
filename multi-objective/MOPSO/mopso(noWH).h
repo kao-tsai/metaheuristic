@@ -32,7 +32,7 @@ class mopso{
         void create_cube();
         void delete_par();
         int select_lead();
-        void update_wheel();
+        void sorting_id();
         void update_velocity(population&,population&);
 
 private:
@@ -55,7 +55,7 @@ private:
     solution hyper_min;
     population pbest;
     population pbest_fit;
-    vector<vector<int>> wheel;
+    vector<vector<int>> wheel_table;
 };
 mopso::mopso(int xNumRuns,
 int xNumIter,
@@ -95,8 +95,7 @@ void mopso::init(population& all_sol){
     hypercube=get_non_set(pbest,hyper_fit);
     
     create_cube();
-    
-    update_wheel();
+    sorting_id();
     delete_par();
 }
 
@@ -171,17 +170,11 @@ bool mopso::dominate(solution& new_fit,solution& old_fit){
 }
 //------------------------------------------取得Non-Dominated Set---------------------------------------//
 mopso::population mopso::get_non_set(population& all_sol,population& fit){
-    // all_sol=population(5,solution(1));
-    // all_sol[0][0]=1;
-    // all_sol[1][0]=-1;
-    // all_sol[2][0]=2;
-    // all_sol[3][0]=0.5;
-    // all_sol[4][0]=3;
-    // fit=fitness(all_sol);
+ 
     int sol_size=all_sol.size();
-    //+sol_size
+
     vector<bool>check_dominate(sol_size,true);
-    //+
+
     for(int i=0;i<sol_size-1;i++)
         for(int j=i+1;j<sol_size;j++){
             if(dominate(fit[i],fit[j]))
@@ -189,11 +182,6 @@ mopso::population mopso::get_non_set(population& all_sol,population& fit){
             else if(dominate(fit[j],fit[i]))
                 check_dominate[i]=false;
         }
-    //記住山--------------//
-    // for(int i=0;i<5;i++){
-    //     cout<<i<<":"<<check_dominate[i]<<endl;
-    // }
-    //------------------------//
     
     population new_non_dom,new_fit;
     for(int i=0;i<sol_size;i++)
@@ -205,30 +193,55 @@ mopso::population mopso::get_non_set(population& all_sol,population& fit){
     return  new_non_dom;
 } 
 //-----------------------------------------------------------------------------------------------------------------//
-//----------------------------------------Update Wheel Function------------------------------------------//
-void mopso::update_wheel(){
-    
-    vector< int> add_id(1);
-    wheel.clear();
-    bool flag;
-    for(int i=0;i<hypercube.size();i++){
-        flag=true;
-        for(int j=0;j<wheel.size();j++){
-            if(wheel[j][0]==cube_id[i]){
-                wheel[j].push_back(i);
-                flag=false;
-                break;
-            }   
+//-----------------------------------用來替換update_wheel()來加快速度----------------------------------//
+void mopso::sorting_id(){
+    vector<int> order(hypercube.size());
+    int cur_cube_size=hypercube.size();
+    for(int i=0;i<cur_cube_size;i++)
+        order[i]=i;
+    int min,min_pos,tmp;
+    for(int i=0;i<cur_cube_size;i++){
+        min=cube_id[i];
+        min_pos=i;
+        //若與前值相同則無須排序
+        if(i>0&&cube_id[i]!=cube_id[i-1]){
+            for(int j=i+1;j<cur_cube_size;j++)
+                if(min>cube_id[j]){
+                    min=cube_id[j];
+                    min_pos=j;
+                }      
+        //目標值排序
+        tmp=cube_id[i];
+        cube_id[i]=cube_id[min_pos];
+        cube_id[min_pos]=tmp;
+        //id排序
+        tmp=order[i];
+        order[i]=order[min_pos];
+        order[min_pos]=tmp;
         }
-        if(flag){
+    }    
+    //將排序後的Hyper Cube進行儲存
+    population sorting_cube;
+    sorting_cube=hypercube;
+    
+    for(int i=0;i<cur_cube_size;i++)
+        hypercube[i]=sorting_cube[order[i]];
+        //先暫時儲存hyper_fit若不需要則將它刪除
+
+    //建立供輪盤選擇用的表格
+    vector<int> add_id={cube_id[0],1};
+    int count=0;
+    wheel_table.clear();
+    wheel_table.push_back(add_id);
+    for(int i=1;i<cur_cube_size;i++){
+        if(wheel_table[count][0]==cube_id[i])
+            wheel_table[count][1]++;
+        else{
             add_id[0]=cube_id[i];
-            wheel.push_back(add_id);
-            wheel[wheel.size()-1].push_back(i);
+            wheel_table.push_back(add_id);
+            count++;
         }
     }
-    //記住山//
-    // for(int i=0;i<wheel.size();i++)
-    //     cout<<"wheel "<<i<<" Size:"<<wheel[i].size()<<endl;
 
 }
 //-----------------------------------------------------------------------------------------------------------------//
@@ -241,99 +254,84 @@ void mopso::update_cube(population& all_sol){
     tmp_fit=fitness(new_nondominated);
     hypercube=get_non_set(new_nondominated,tmp_fit);
     hyper_fit=tmp_fit;
-    
     create_cube();
-    
     //------Update Wheel Function------//
-    update_wheel();
-   
+    sorting_id();
     //當hypercube大小超過上限，從擁擠的hypercube刪除particle//
     delete_par();
-
-    // cout<<"deep"<<endl;
 }
 //----------------------------------------------------------------------------------------------------------------//
-
 //-------------------------------------刪除HyperCube多出來的粒子------------------------------------//
 void mopso::delete_par(){
     
     int tmp_max,rnd1,rnd2;
     vector<int> same_size;
-    // int count=0;
-    // cout<<"HyperCube size:"<<hypercube.size()<<endl;
     while(hypercube.size()>mem){
-
         //-----選出有最大值的hypercube id----//
-        
         same_size.clear();
-        tmp_max=wheel[0].size()-1;
+        tmp_max=wheel_table[0][1];
         same_size.push_back(0);
-        for(int i=1;i<wheel.size();i++){
-            if(tmp_max<wheel[i].size()-1){
-                tmp_max=wheel[i].size()-1;
+        for(int i=1;i<wheel_table.size();i++){
+            if(tmp_max<wheel_table[i][1]){
+                tmp_max=wheel_table[i][1];
                 same_size.clear();
                 same_size.push_back(i);
             }
-            else if(tmp_max==wheel[i].size()-1)
+            else if(tmp_max==wheel_table[i][1])
                 same_size.push_back(i);
         }
-        //-------------------------------------------------//
         //---rnd1會選出一個相同數目的wheel---//
         rnd1=same_size[rand()%same_size.size()];
-        rnd2=rand()%(wheel[rnd1].size()-1)+1;
-        
-        //刪除 cube_id , hypercube , hyper_fit , 最後再刪除wheel//
-        // cout<<"hypercube Size:"<<hypercube.size()<<" cube ID Size:"<<cube_id.size()<<endl;
-        // cout<<"rnd1="<<rnd1<<", rnd2="<<rnd2<<endl;
-        // for(int i=0;i<wheel.size();i++)
-        //     cout<<"wheel "<<i<<" Size:"<<wheel[i].size()<<endl;
-        // cout<<wheel[rnd1][rnd2]<<endl;
-        cube_id.erase(cube_id.begin()+wheel[rnd1][rnd2]);
-        // cout<<"deep1-----------------------------------------------------------------"<<endl;
-        hypercube.erase(hypercube.begin()+wheel[rnd1][rnd2]);
-        //判斷是否需要刪除hyper_fit
-        //hyper_fit.erase(hyper_fit.begin()+wheel[rnd1][rnd2]);
-        if(wheel[rnd1].size()==2)
-            wheel.erase(wheel.begin()+rnd1);
+        rnd2=rand()%wheel_table[rnd1][1];
+        int sum=0;
+        for(int i=0;i<rnd1;i++)
+            sum+=wheel_table[i][1];
+        rnd2+=sum;
+        //刪除 cube_id , hypercube, 最後再刪除wheel//  
+        cube_id.erase(cube_id.begin()+rnd2);
+        hypercube.erase(hypercube.begin()+rnd2);
+        if(wheel_table[rnd1][1]==1)
+            wheel_table.erase(wheel_table.begin()+rnd1);
         else
-            wheel[rnd1].erase(wheel[rnd1].begin()+rnd2);
-        
+            wheel_table[rnd1][1]--;
         //-----------------------------------------------------------------------//
-        // count++;
-        // cout<<"deep2:"<<count<<endl;
-        update_wheel();
     }
-    
 }
 //---------------------------------------------------------------------------------------------------------------//
 int mopso::select_lead(){
     //利用輪盤選擇gbest
-    solution prob(wheel.size());
+    int table_size=wheel_table.size();
+    solution prob(table_size);
     double hypersum=0;
-    for(int i=0;i<wheel.size();i++){
-        prob[i]=10.0/(pow(wheel[i].size()-1,3.0));
-        // prob[i]=10.0/(wheel[i].size()-1);
+    for(int i=0;i<table_size;i++){
+        prob[i]=10.0/(pow(wheel_table[i][1],3.0));
+        //prob[i]=10.0/wheel_table[i][1];
         hypersum+=prob[i];
     }
     double rnd1=((double)rand()/RAND_MAX)*hypersum;
     double sum=0;
     int choose;
-    for(int i=0;i<wheel.size();i++){
+    for(int i=0;i<table_size;i++){
         sum+=prob[i];
         if(rnd1<sum){
             choose=i;
             break;
         }
     }
-    int rnd2=rand()%(wheel[choose].size()-1)+1;
-    return wheel[choose][rnd2];
+    int rnd2=rand()%wheel_table[choose][1];
+    int cumulative=0;
+    for(int i=0;i<choose;i++)
+        cumulative+=wheel_table[i][1];
+    rnd2+=cumulative;
+    return rnd2;
 }
 
 void mopso::update_velocity(population &all_sol,population &vel){
-    double W=0.4,c1=1,c2=2;
+    double W=0.4,c1=1,c2=4;
     int gbest_pos;
     for(int i=0;i<population_num;i++){
         gbest_pos=select_lead();
+       
         for(int j=0;j<dimension;j++){
             vel[i][j]=W*vel[i][j]+c1*((double)rand()/RAND_MAX)*(pbest[i][j]
                             -all_sol[i][j])+c2*((double)rand()/RAND_MAX)*(hypercube[gbest_pos][j]-all_sol[i][j]);
@@ -345,8 +343,7 @@ void mopso::update_velocity(population &all_sol,population &vel){
             if(all_sol[i][j]>upperbound[j])
                 all_sol[i][j]=upperbound[j];
             else if(all_sol[i][j]<lowerbound[j])
-                all_sol[i][j]=lowerbound[j];
-        
+                all_sol[i][j]=lowerbound[j]; 
 }
 
 
@@ -355,23 +352,20 @@ mopso::population mopso::run(){
     population currentSol(population_num,solution(dimension));
     population vel;
     for(int i=0;i<numRuns;i++){
+         
         init(currentSol);
         
         vel=population(population_num,solution(dimension,0));
         for(int j=0;j<numIter;j++){
-          
-            update_velocity(currentSol,vel);
-        
-            update_pbest(currentSol);
-            
-            update_cube(currentSol);
-            
+            update_velocity(currentSol,vel);       
+            update_pbest(currentSol);           
+            update_cube(currentSol);  
         }
     }
     hyper_fit=fitness(hypercube);
     return hyper_fit;
-
 }
+
 mopso::population mopso::fitness(population& all_sol) {
     if(problem_func=="SCH")
         return SCH(all_sol);
