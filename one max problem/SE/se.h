@@ -14,13 +14,13 @@ using namespace std;
 class se{
 	public:
 		typedef vector<int> d1;
-        typedef vector<d1> d2;
-        typedef vector<d2> d3;
+        typedef vector<vector<int>> d2;
+        typedef vector<vector<vector<int>>> d3;
         typedef vector<double> dd1;
-        typedef vector<dd1> dd2;
-        typedef vector<dd2> dd3;
+        typedef vector<vector<double>> dd2;
+        typedef vector<vector<vector<double>>> dd3;
 
-		se(string,int,int,int,int,int);
+		se(int,int,int,int,int,int,int);
 		d1 run();
 	private:
 		void init();
@@ -31,6 +31,7 @@ class se{
         void cal_ev();
         void choose_sample();
         void select_player();
+        void marketing_survey();
 
 private:
 	int numRuns;
@@ -49,23 +50,23 @@ private:
     dd2 sample_fit;
     dd3 sampleV_fit;
     dd1 searcher_fit;
-    int clip_bit_num;
+    d1 best_sol;
     int best_obj_val;
-	double mutation_pro;
-    double crossover_pro;
+    int clip_bit_num;
+
     int region_num;
     int searcher_num;
     int sample_num;
+    int tour_size;
 };
 
-se::se(string xSelection,int xNumRuns,
+se::se(int xNumRuns,
 int xNumIter,
 int xNumPatterns,
-string xfilename,
-int xPopulationNum,
 int xRegion,
 int in_searcher_num,
-int in_sample_num
+int in_sample_num,
+int in_tournament_size
 )
 {
     srand(time(0));
@@ -73,21 +74,23 @@ int in_sample_num
     numRuns=xNumRuns;
 	numIter=xNumIter;
 	numPatterns=xNumPatterns;
-    crossover_pro=0.6;
-    mutation_pro=0.1;
+    // crossover_pro=0.6;
+    // mutation_pro=0.1;
     region_num=xRegion;
     searcher_num=in_searcher_num;
     sample_num=in_sample_num;
+    tour_size=in_tournament_size;
 }
 
 
 void se::init(){
     best_obj_val=0;
+    best_sol.assign(numPatterns,0);
     tb.assign(region_num,0.0);
     ta.assign(region_num,1.0);
     searcher_belong.assign(searcher_num,0);
-    searcher.assign(searcher_num,d1(numPatterns));
-    sample.assign(region_num,d2(sample_num,d1(numPatterns)));
+    searcher.assign(searcher_num,d1(numPatterns,0));
+    sample.assign(region_num,d2(sample_num,d1(numPatterns,0)));
     sampleV.assign(searcher_num, d3(region_num, d2(sample_num*2, d1(numPatterns, 0))));
     sample_fit.assign(region_num, dd1(sample_num, 0.0));
     sampleV_fit.assign(searcher_num,dd2(region_num,dd1(sample_num,0.0)));
@@ -100,15 +103,17 @@ void se::init(){
 
 void se::arrange(){
     clip_bit_num=log2(region_num);
-
+    region_bit.assign(region_num,d1(clip_bit_num,0));
     for(int i=0;i<region_num;i++){
         int n=clip_bit_num-1;
         int tmp=i;
         while(n>=0){
             region_bit[i][n]=tmp%2;
             tmp/=2;
+            n--;
         }
     }
+   
     for(int i=0;i<searcher_num;i++){
         searcher_belong[i]=i%region_num;
         for(int j=0;j<clip_bit_num;j++)
@@ -159,7 +164,7 @@ void se::ga_mut(){
     for (int i = 0; i < searcher_num; i++) {
         for (int j = 0; j < region_num; j++) {
             for (int k = 0; k < 2*sample_num; k++) {
-                int m = rand() % numPatterns; // bit to mutate
+                int m = rand() % numPatterns; 
                 if (m >= clip_bit_num)
                     sampleV[i][j][k][m] = !sampleV[i][j][k][m];
             }
@@ -206,6 +211,7 @@ void se::cal_ev(){
         
     for(int i=0;i<searcher_num;i++)
         searcher_fit[i]=evaluation(searcher[i]);
+    choose_sample();
 }
 void se::choose_sample(){
      for (int i = 0; i < searcher_num ; i++) {
@@ -256,22 +262,23 @@ void se::select_player(){
     }
 }
 se::d1 se::run(){
-    int count=0;
-    double avg_obj_value;
-    vector<double>iter_obj_avg(numIter,0.0);
+
+    dd1 iter_obj_avg(numIter,0.0);
     for(int i=0;i<numRuns;i++){
         //cout<<"hello:"<<count<<endl;
-        count++;
-        init();
-        avg_obj_value=0.0;
-        for(int j=0;j<numIter;j++){
 
+        init();
+        
+        arrange();
+        for(int j=0;j<numIter;j++){
+            
             ga_crossover();
             ga_mut();
-
             cal_ev();
             select_player();
-            iter_obj_avg[j]+=best_obj_value;
+            
+            marketing_survey();
+            iter_obj_avg[j]+=best_obj_val;
         }
         
     }
@@ -283,10 +290,28 @@ se::d1 se::run(){
 
 }
 
+void se::marketing_survey()
+{
+    for (int i = 0; i < region_num; i++)
+
+        if (tb[i] > 1)
+            tb[i] = 1.0;
+
+    int j = -1;
+    for (int i = 0; i < searcher_num; i++) {
+        if (searcher_fit[i] > best_obj_val) {
+            best_obj_val = searcher_fit[i];
+            j = i;
+        }
+    }
+    if (j >= 0)
+        best_sol = searcher[j];
+}
+
 int se::evaluation(d1& sol){
     int  count=0;
     for(int i=0;i<numPatterns;i++)
-	count+=sol[i];
+	    count+=sol[i];
     return count;
 }
 #endif

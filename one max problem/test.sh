@@ -1,6 +1,5 @@
 clear
 make clean
 make
-./search aco 30 1024 "ACO/testData.txt" 20 1 2 0.9 4 > result_tsp.txt
-
-bash ACO/plot_best.sh
+./search se 1 1024 100 4 4 2 4
+# ./search ga 30 1024 100 "" 20 0.8 0.2

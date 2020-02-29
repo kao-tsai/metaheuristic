@@ -1,0 +1,5 @@
+Algorithm:se
+Number of runs:30
+Number of iterations:1024
+Number of patterns:100
+Number of population:20

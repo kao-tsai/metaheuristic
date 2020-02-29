@@ -18,8 +18,8 @@ pop_num=500
 # gnuplot -c gnuplot/test.gp gnuplot/NSGA_FON.svg FON 0 1 0 1 pareto/FON/FON_mnsga2_0.txt opt/FON_opt.txt
 
 #250 500 0.85 0.4
-# ./search bnsga2 $run 100 500 0.85 0.25 SCH > pareto/SCH/SCH_mnsga2_0.txt
-# gnuplot -c gnuplot/test.gp gnuplot/NSGA_SCH.svg SCH 0 4 0 4 pareto/SCH/SCH_mnsga2_0.txt opt/SCH_opt.txt
+# ./search bnsga2 $run 250 100 0.9 0.3 SCH > pareto/SCH/SCH_mnsga2_0.txt
+# gnuplot -c gnuplot/test.gp gnuplot/NSGA_SCH.png SCH 0 4 0 4 pareto/SCH/SCH_mnsga2_0.txt opt/SCH_opt.txt
 
 # ./search bnsga2 $run 100 500 0.9 0.05 KUR > pareto/KUR/KUR_mnsga2_0.txt
 # gnuplot -c gnuplot/test.gp gnuplot/NSGA_KUR.svg KUR -20 -14 -12 2 pareto/KUR/KUR_mnsga2_0.txt opt/KUR_opt.txt
@@ -30,8 +30,8 @@ pop_num=500
 #  ./search bnsga2 $run 250 500 0.85 0.001 ZDT1 > pareto/ZDT1/ZDT1_mnsga2_0.txt
 #  gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT1.svg ZDT1 0 1 0 1 pareto/ZDT1/ZDT1_mnsga2_0.txt opt/ZDT1_opt.txt
 
-#  ./search bnsga2 $run 250 500 0.9 0.001 ZDT2 > pareto/ZDT2/ZDT2_mnsga2_0.txt
-# gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT2.svg ZDT2 0 1 0 1 pareto/ZDT2/ZDT2_mnsga2_0.txt opt/ZDT2_opt.txt
+ ./search bnsga2 $run 250 500 0.9 0.001 ZDT2 > pareto/ZDT2/ZDT2_mnsga2_0.txt
+gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT2.png ZDT2 0 1 0 1 pareto/ZDT2/ZDT2_mnsga2_0.txt opt/ZDT2_opt.txt
 
 # ./search bnsga2 $run 250 500 0.9 0.001 ZDT3 > pareto/ZDT3/ZDT3_mnsga2_0.txt
 # gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT3.svg ZDT3 0 1 -1 1 pareto/ZDT3/ZDT3_mnsga2_0.txt opt/ZDT3_opt.txt

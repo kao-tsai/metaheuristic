@@ -58,7 +58,8 @@ void hc::init(){
                 for(int i=0;i<numPatterns;i++)     
                         file>>value[i];
                 file.close();
-                s=solution(numPatterns);
+                // s=solution(numPatterns);
+                s.assign(numPatterns,0);
                 for(int i=0;i<numPatterns;i++)
                         s[i]=rand()%2;
                 while(checkCapacity(s))

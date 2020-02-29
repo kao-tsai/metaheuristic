@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iomanip>
 #include <limits>
+
 #include "dataset.cpp"
 #include"function_init.cpp"
 
@@ -30,6 +31,8 @@ class bnsgaii{
         solution crowding_dis_assign(solution);
         void obj_sorting(vector<double>&,vector<int>&);
         vector<vector<double>> decode(vector<population>);
+        void quick_sort(int,solution&,solution&,int,int);
+        void quick_sort_dis(vector<double>&,solution&,int,int);
 
 private:
 	int numRuns;
@@ -61,6 +64,7 @@ string xproblem_func
 	numIter=xNumIter;
     crossover_pro=xcrossover_pro;
     mutation_pro=xmutation_pro;
+    // mutation_pro=1/30;
     population_num=xPopulationNum;
     problem_func=xproblem_func;
     func_init(problem_func);
@@ -358,97 +362,100 @@ vector<bnsgaii::population> bnsgaii::fast_non_dominated(vector<population>& new_
 
 
 
-bnsgaii::solution bnsgaii::crowding_dis_assign(solution this_rank){
+// bnsgaii::solution bnsgaii::crowding_dis_assign(solution this_rank){
    
-    int solution_num=this_rank.size();
-    vector<double> init_dis(solution_num,0.0);
-    vector<vector<double>> this_obj_val(solution_num);
-    //population each_obj_val=fitness(F);
-    for(int i=0;i<this_rank.size();i++)
-        this_obj_val[i]=obj_val[this_rank[i]];
+//     int solution_num=this_rank.size();
+//     vector<double> init_dis(solution_num,0.0);
+//     vector<vector<double>> this_obj_val(solution_num);
+//     //population each_obj_val=fitness(F);
+//     for(int i=0;i<this_rank.size();i++)
+//         this_obj_val[i]=obj_val[this_rank[i]];
 
-    vector<int>tmp_id(solution_num);
-    vector<vector<int>> sorting_id(obj_num);
-    for(int i=0;i<solution_num;i++)
-        tmp_id[i]=i;
-    for(int i=0;i<obj_num;i++)
-        sorting_id[i]=tmp_id;
-    //列行互換
-    vector<vector<double>> row_obj_val(obj_num,vector<double>(solution_num));
-    for(int i=0;i<obj_num;i++)
-        for(int j=0;j<solution_num;j++)
-            row_obj_val[i][j]=this_obj_val[j][i];
-    //對各目標進行排序
-    //for(int i=0;i<obj_num;i++)
-    obj_sorting(row_obj_val[0],sorting_id[0]);
-    sorting_id[1]=sorting_id[0];
-    reverse(sorting_id[1].begin(),sorting_id[1].end());
-    vector<double> origin_obj1;
-    origin_obj1=row_obj_val[1];
-    for(int i=0;i<solution_num;i++)
-        row_obj_val[1][i]=origin_obj1[sorting_id[1][i]];
+//     vector<int>tmp_id(solution_num);
+//     vector<vector<int>> sorting_id(obj_num);
+//     for(int i=0;i<solution_num;i++)
+//         tmp_id[i]=i;
+//     for(int i=0;i<obj_num;i++)
+//         sorting_id[i]=tmp_id;
+//     //列行互換
+//     vector<vector<double>> row_obj_val(obj_num,vector<double>(solution_num));
+//     for(int i=0;i<obj_num;i++)
+//         for(int j=0;j<solution_num;j++)
+//             row_obj_val[i][j]=this_obj_val[j][i];
+//     //對各目標進行排序
+//     //for(int i=0;i<obj_num;i++)
+//     obj_sorting(row_obj_val[0],sorting_id[0]);
+//     sorting_id[1]=sorting_id[0];
+//     reverse(sorting_id[1].begin(),sorting_id[1].end());
+//     vector<double> origin_obj1;
+//     origin_obj1=row_obj_val[1];
+//     for(int i=0;i<solution_num;i++)
+//         row_obj_val[1][i]=origin_obj1[sorting_id[1][i]];
     
-    //記得要刪除-------------------------------------//
-    /*
-    cout<<"Have been sorted:"<<endl;
-    for(int i=0;i<obj_num;i++){
-        for(int j=0;j<solution_num;j++)
-            cout<<sorting_id[i][j]<<" ";
-        cout<<endl;
-    }*/
-    //---------------------------------------------------//
-    //記得要刪除-------------------------------------//
-    /*
-    for(int i=0;i<obj_num;i++){
-        for(int j=0;j<solution_num;j++)
-            cout<<row_obj_val[i][j]<<" ";
-        cout<<endl;
-    }*/
-    //---------------------------------------------------//
-    //記得要刪除-------------------------------------//
-    /*
-    cout<<"obj1:";
-    for(int i=0;i<solution_num;i++)
-        cout<<row_obj_val[0][i]<<" ";
-    cout<<endl;
-     cout<<"obj2:";
-    for(int i=0;i<solution_num;i++)
-        cout<<row_obj_val[1][i]<<" ";
-    cout<<endl<<endl;*/
-    //---------------------------------------------------//
+//     //記得要刪除-------------------------------------//
+//     /*
+//     cout<<"Have been sorted:"<<endl;
+//     for(int i=0;i<obj_num;i++){
+//         for(int j=0;j<solution_num;j++)
+//             cout<<sorting_id[i][j]<<" ";
+//         cout<<endl;
+//     }*/
+//     //---------------------------------------------------//
+//     //記得要刪除-------------------------------------//
+//     /*
+//     for(int i=0;i<obj_num;i++){
+//         for(int j=0;j<solution_num;j++)
+//             cout<<row_obj_val[i][j]<<" ";
+//         cout<<endl;
+//     }*/
+//     //---------------------------------------------------//
+//     //記得要刪除-------------------------------------//
+//     /*
+//     cout<<"obj1:";
+//     for(int i=0;i<solution_num;i++)
+//         cout<<row_obj_val[0][i]<<" ";
+//     cout<<endl;
+//      cout<<"obj2:";
+//     for(int i=0;i<solution_num;i++)
+//         cout<<row_obj_val[1][i]<<" ";
+//     cout<<endl<<endl;*/
+//     //---------------------------------------------------//
 
-    //計算擁擠程度
-    init_dis[sorting_id[0][0]]=numeric_limits<double>::max();
-    init_dis[sorting_id[0][solution_num-1]]=numeric_limits<double>::max();
-    for(int i=0;i<obj_num;i++)
-        for(int j=1;j<solution_num-1;j++)
-            init_dis[sorting_id[0][j]]+=fabs(row_obj_val[i][j+1]-row_obj_val[i][j-1])/fabs(row_obj_val[i][solution_num-1]-row_obj_val[i][0]);
-    obj_sorting(init_dis,this_rank);
-    return this_rank;
-}
-void bnsgaii::obj_sorting(vector<double> &sort_obj,solution& sorting_id){
-    double max,tmp;
-    int max_pos;
-    for(int i=0;i<sort_obj.size();i++){
-        max=sort_obj[i];
-        max_pos=i;
-        for(int j=i+1;j<sort_obj.size();j++){
-            if(max<sort_obj[j]){
-                max=sort_obj[j];
-                max_pos=j;
-            }
-        }
-        //目標值排序
-        tmp=sort_obj[i];
-        sort_obj[i]=sort_obj[max_pos];
-        sort_obj[max_pos]=tmp;
-        //id排序
-        tmp=sorting_id[i];
-        sorting_id[i]=sorting_id[max_pos];
-        sorting_id[max_pos]=tmp;
-    }
+//     //計算擁擠程度
+//     init_dis[sorting_id[0][0]]=numeric_limits<double>::max();
+//     init_dis[sorting_id[0][solution_num-1]]=numeric_limits<double>::max();
+//     for(int i=0;i<obj_num;i++)
+//         for(int j=1;j<solution_num-1;j++)
+//             init_dis[sorting_id[0][j]]+=fabs(row_obj_val[i][j+1]-row_obj_val[i][j-1])/fabs(row_obj_val[i][solution_num-1]-row_obj_val[i][0]);
+    
+//     obj_sorting(init_dis,this_rank);
+//     return this_rank;
+// }
+//-------------------------------------------Insertion sort--------------------------------------------------//
+// void bnsgaii::obj_sorting(vector<double> &sort_obj,solution& sorting_id){
+//     double max,tmp;
+//     int max_pos;
+//     for(int i=0;i<sort_obj.size();i++){
+//         max=sort_obj[i];
+//         max_pos=i;
+//         for(int j=i+1;j<sort_obj.size();j++){
+//             if(max<sort_obj[j]){
+//                 max=sort_obj[j];
+//                 max_pos=j;
+//             }
+//         }
+//         //目標值排序
+//         tmp=sort_obj[i];
+//         sort_obj[i]=sort_obj[max_pos];
+//         sort_obj[max_pos]=tmp;
+//         //id排序
+//         tmp=sorting_id[i];
+//         sorting_id[i]=sorting_id[max_pos];
+//         sorting_id[max_pos]=tmp;
+//     }
 
-}
+// }
+//------------------------------------------------------------------------------------------------------------//
 vector<vector<double>> bnsgaii::fitness(vector<vector<double>> & all_sol) {
     if(problem_func=="SCH")
         return SCH(all_sol);
@@ -473,6 +480,139 @@ vector<vector<double>> bnsgaii::fitness(vector<vector<double>> & all_sol) {
 
 }
 
+//--------------------------------------------Use Quick Sort------------------------------------------------------//
+void bnsgaii::quick_sort(int obj_level,solution& obj_id,solution& sorting_id,int left,int right){
+    int index;
+    int temp;
+    int i, j;
+    double pivot;
+    if (left<right)
+    {
+        index = rand()%(right-left+1)+left;
+
+        temp = obj_id[right];
+        obj_id[right] = obj_id[index];
+        obj_id[index] = temp;
+
+        temp = sorting_id[right];
+        sorting_id[right] = sorting_id[index];
+        sorting_id[index] = temp;
+
+        pivot = obj_val[obj_id[right]][obj_level];
+
+        i = left-1;
+        for (j=left; j<right; j++)
+        {
+            if (obj_val[obj_id[j]][obj_level] <= pivot)
+            {
+                i+=1;
+                temp = obj_id[j];
+                obj_id[j] = obj_id[i];
+                obj_id[i] = temp;
+                
+                temp = sorting_id[j];
+                sorting_id[j] = sorting_id[i];
+                sorting_id[i] = temp;
+            }
+        }
+        index=i+1;
+        temp = obj_id[index];
+        obj_id[index] = obj_id[right];
+        obj_id[right] = temp;
+
+        temp = sorting_id[index];
+        sorting_id[index] = sorting_id[right];
+        sorting_id[right] = temp;
+
+        quick_sort(obj_level,obj_id,sorting_id, left, index-1);
+        quick_sort(obj_level,obj_id,sorting_id, index+1, right);
+    }
+}
+
+bnsgaii::solution bnsgaii::crowding_dis_assign(solution this_rank){
+   
+    int front_size=this_rank.size();
+    vector<double> init_dis(front_size,0.0);
+
+    population sorting_id(obj_num,solution(front_size));
+    population obj_id(obj_num);
+    for(int i=0;i<obj_num;i++){
+        for(int j=0;j<front_size;j++)
+            sorting_id[i][j]=j;
+        obj_id[i]=this_rank;
+        quick_sort(i,obj_id[i],sorting_id[i],0,front_size-1);
+    }
+    
+    //計算擁擠程度
+    for (int i=0; i<obj_num; i++)
+        init_dis[sorting_id[i][0]]= std::numeric_limits<double>::infinity();
+    
+    for(int i=0;i<obj_num;i++)
+        for(int j=1;j<front_size-1;j++){
+            if(init_dis[j]!=numeric_limits<double>::infinity()){
+                if(obj_val[this_rank[sorting_id[i][front_size-1]]][i]== obj_val[this_rank[sorting_id[i][0]]][i])
+                    init_dis[sorting_id[i][j]]+=0.0;
+                else
+                    init_dis[sorting_id[i][j]]+=(obj_val[this_rank[sorting_id[i][j+1]]][i]-obj_val[this_rank[sorting_id[i][j-1]]][i])/(obj_val[this_rank[sorting_id[i][front_size-1]]][i]-obj_val[this_rank[sorting_id[i][0]]][i]);
+            }
+        }
+    //距離密度值進行正規化
+    for (int j=0; j<front_size; j++)
+        if (init_dis[j]!= numeric_limits<double>::infinity())
+           init_dis[j] = init_dis[j]/obj_num;
+        
+    
+    quick_sort_dis(init_dis,this_rank,0,front_size-1);
+    reverse(this_rank.begin(),this_rank.end());
+    return this_rank;
+}
+void bnsgaii::quick_sort_dis(vector<double>& init_dis,solution& this_rank,int left,int right){
+    int index;
+    int temp;
+    int i, j;
+    double pivot;
+    if (left<right)
+    {
+        index = rand()%(right-left+1)+left;
+
+        temp = init_dis[right];
+        init_dis[right] = init_dis[index];
+        init_dis[index] = temp;
+
+        temp = this_rank[right];
+        this_rank[right] = this_rank[index];
+        this_rank[index] = temp;
+
+        pivot = init_dis[right];
+
+        i = left-1;
+        for (j=left; j<right; j++)
+        {
+            if (init_dis[j] <= pivot)
+            {
+                i+=1;
+                temp = init_dis[j];
+                init_dis[j] = init_dis[i];
+                init_dis[i] = temp;
+                
+                temp = this_rank[j];
+                this_rank[j] = this_rank[i];
+                this_rank[i] = temp;
+            }
+        }
+        index=i+1;
+        temp = init_dis[index];
+        init_dis[index] = init_dis[right];
+        init_dis[right] = temp;
+
+        temp = this_rank[index];
+        this_rank[index] = this_rank[right];
+        this_rank[right] = temp;
+
+        quick_sort_dis(init_dis,this_rank, left, index-1);
+        quick_sort_dis(init_dis,this_rank, index+1, right);
+    }
+}
 
 #endif
        

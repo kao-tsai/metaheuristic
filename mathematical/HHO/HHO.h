@@ -36,20 +36,24 @@ private:
 	int runs;
 	int iters;
     int dim;
+    int max_evaluate;
 	double rabbit_obj_val;//Best objective value
 	solution rabbit_location;//Best location of rabbit
     int population_num;
     double upperbound;
     double lowerbound;
-
+    solution gnu_eva;
+    int evaluate_num;
 };
 hoo::hoo(int x_runs,int x_iters,int x_population_num){
     runs=x_runs;
     iters=x_iters;
     population_num=x_population_num;
-    upperbound=100;
-    lowerbound=-100;
+    upperbound=30;
+    lowerbound=-30;
     dim=30;
+    evaluate_num=0;
+    max_evaluate=270000;
 }
 void hoo::determination(population& all_sol){
     double fitness;
@@ -72,7 +76,7 @@ double hoo::frand(){
     double f = (double)rand()/ RAND_MAX;
     return lowerbound + f * (upperbound - lowerbound);
 }
-
+/*
 double hoo::evaluation(solution& sol){
     double sum_of_sq=0.0;
     double sum_of_cos=0.0;
@@ -84,16 +88,17 @@ double hoo::evaluation(solution& sol){
     
     return (-20)*exp((-0.2)*sqrt((1.0/dim)*sum_of_sq))-exp((1.0/dim)*sum_of_cos)+exp(1)+20;
 }
+*/
 
-/*
 double hoo::evaluation(solution& sol){
     double sum=0.0;
     for(int i=0;i<dim-1;i++)
         sum+=100.0*pow(sol[i+1]-pow(sol[i],2.0),2.0)+pow(sol[i]-1,2.0);
-
+    evaluate_num++;
+    gnu_eva[evaluate_num]+=rabbit_obj_val;
     return sum;
 }
-*/
+
 void hoo::update_location(population &hawks,double E1){
     double E0,escaping_energy,q;
     for(int i=0;i<population_num;i++){
@@ -160,13 +165,12 @@ void hoo::update_location(population &hawks,double E1){
                 else
                 {
                     for(int j=0;j<dim;j++)
-                        X2[j]=X1[j]+((double)rand()/RAND_MAX)*get_levy[j]*get_levy[j];
+                        X2[j]=X1[j]+((double)rand()/RAND_MAX)*get_levy[j];//Debug:多乘以1個levy flight;
                     if(evaluation(X2)<evaluation(hawks[i]))
                         hawks[i]=X2;
                 }
             }
         }
-
     }
 }
 hoo::solution hoo::levy_flight(){
@@ -191,12 +195,16 @@ hoo::solution hoo::cal_mean(population& all_sol){
 }
 
 void hoo::init(population& current_sol){
-    
+
+    evaluate_num=0;
+    rabbit_obj_val=numeric_limits<double>::infinity();
+    gnu_eva=solution(max_evaluate,0.0);
+    gnu_eva[evaluate_num]+=rabbit_obj_val;
     for(int i=0;i<population_num;i++)
         for(int j=0;j<dim;j++)
             current_sol[i][j]=frand();
     rabbit_location=solution(dim,0.0);
-    rabbit_obj_val=numeric_limits<double>::max();
+    
 }
 
 hoo::solution hoo::run(){
@@ -212,9 +220,16 @@ hoo::solution hoo::run(){
             iter_obj_avg[j]+=rabbit_obj_val;
         }
     }
+    ofstream output("gnuplot/result/HHO.txt");
+    for(int i=0;i<max_evaluate;i++)
+        if(i%500==0){
+            output<<i<<" ";
+            output<<fixed<<setprecision(20)<<gnu_eva[i]/runs<<endl;
+        }
+    output.close();
     for(int i=0;i<iters;i++)
         cout<<fixed<<setprecision(20)<<(double)iter_obj_avg[i]/runs<<endl;
-
+    cout<<"Evaluation Number:"<<evaluate_num<<endl;
     cout<<"Best objective value:"<<rabbit_obj_val<<endl;
     return  rabbit_location;
 
