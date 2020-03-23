@@ -57,6 +57,7 @@ private:
     dd1 tb;
     d1 searcher_belong;
     dd2 EV;
+    dd2 region_best;
     dd1 region_best_fit;
     dd2 sample_fit;
     dd3 sampleV_fit;
@@ -114,7 +115,8 @@ void se::init(){
     sample_fit.assign(region_num, dd1(sample_num, 0.0));
     sampleV_fit.assign(searcher_num,dd2(region_num,dd1(sample_num,0.0)));
     searcher_fit.assign(searcher_num,0.0);
-    region_best_fit.assign(region_num,0);
+    region_best_fit.assign(region_num,inf);
+    region_best.assign(region_num,dd1(numPatterns,0.0));
     //自行設定特定公式的邊界
     upperbound.assign(numPatterns,30);
     lowerbound.assign(numPatterns,-30);
@@ -219,8 +221,8 @@ void se::HHO_transit(double E1){
                     else if(q>=0.5){
                         double r1=(double)rand()/RAND_MAX;
                         double r2=(double)rand()/RAND_MAX;
-                        // dd1 mean=cal_mean(sampleV[i][j]);
-                        dd1 mean=cal_mean(sampleV[i]);
+                        dd1 mean=cal_mean(sampleV[i][j]);
+                        // dd1 mean=cal_mean(sampleV[i]);
                         for(int l=0;l<numPatterns;l++)
                             if(l<clip_bit_num)
                                 sampleV[i][j][k][l]=(searcher[i][l]-mean[l])-r1*((region_bound[j][1][l]-region_bound[j][0][l])*r2+region_bound[j][0][l]);
@@ -265,8 +267,8 @@ void se::HHO_transit(double E1){
                         double jump_strength=2.0*(1-(double)rand()/RAND_MAX);
                         dd1 get_levy=levy_flight();
                         dd1 X1(numPatterns),X2(numPatterns);
-                        // dd1 mean=cal_mean(sampleV[i][j]);
-                        dd1 mean=cal_mean(sampleV[i]);
+                        dd1 mean=cal_mean(sampleV[i][j]);
+                        // dd1 mean=cal_mean(sampleV[i]);
                         for(int l=0;l<numPatterns;l++)
                             X1[l]=searcher[i][l]-escaping_energy*fabs(jump_strength*searcher[i][l]-mean[l]);
                         if(evaluation(X1)<evaluation(sampleV[i][j][k]))
@@ -342,7 +344,8 @@ void se::cal_ev(){
     //計算M_j
     double sample_fit_sum=0.0;
     for(int i=0;i<region_num;i++){
-        double tmp_best=inf;
+        //存取以往最好的rbj---------------------------------------------------------------------------------------------(要修)//
+        double tmp_best=region_best_fit[i];
         int best_pos=-1;
 
         for(int j=0;j<sample_num;j++){
@@ -355,9 +358,10 @@ void se::cal_ev(){
                 best_pos=j;
             }
         }
-        if (best_pos >= 0) 
+        if (best_pos >= 0) {
             region_best_fit[i] = tmp_best;
-
+            region_best[i]=sample[i][best_pos];
+        }
     }
     //計算V_j
     dd2 Vij(searcher_num,dd1(region_num,0.0));
@@ -453,17 +457,19 @@ void se::select_player(){
         //cout<<"searcher "<<i<<" select "<<first_select<<" EV="<<EV[i][first_select]<<endl;//------------------------------------//
         int best_sam_pos=0;
         bool flag=false;
-        for (int j = 0; j < sample_num; j++)
-            if (sample_fit[first_select][j] < searcher_fit[i]) {
-                // searcher[i] = sample[first_select][j];
-                // searcher_fit[i] = sample_fit[first_select][j];
-                best_sam_pos=j;
-                flag=true;
-            }
-        if(flag){
-            searcher[i] = sample[first_select][best_sam_pos];
-            searcher_fit[i] = sample_fit[first_select][best_sam_pos];
+        for (int j = 0; j < sample_num; j++){
+            // if (sample_fit[first_select][j] < searcher_fit[i]) {
+            //     // searcher[i] = sample[first_select][j];
+            //     // searcher_fit[i] = sample_fit[first_select][j];
+            //     best_sam_pos=j;
+            //     flag=true;
+            // }
+            searcher[i]=region_best[first_select];
         }
+        // if(flag){
+        //     searcher[i] = sample[first_select][best_sam_pos];
+        //     searcher_fit[i] = sample_fit[first_select][best_sam_pos];
+        // }
         // update region_it[i] and region_hl[i];
         ta[first_select]++;
         tb[first_select] = 1;

@@ -1,8 +1,0 @@
-Algorithm:mopso
-Number of runs:1
-Number of iterations:3000
-Number of population:500
-0.890524 39.0553 
-0.77782 39.3423 
-0 41.4453 
-17.2826.sec

@@ -7,8 +7,8 @@
 #include <fstream>
 #include <iomanip>
 #include <limits>
-#include "dataset.cpp"
-#include"function_init.cpp"
+#include "../test_problem/dataset.cpp"
+#include "../test_problem/function_init.cpp"
 
 using namespace std;
 # define EPS 1.0e-14

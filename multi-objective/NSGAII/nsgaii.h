@@ -61,7 +61,8 @@ string xproblem_func
     numRuns=xNumRuns;
 	numIter=xNumIter;
     crossover_pro=xcrossover_pro;
-    mutation_pro=xmutation_pro;
+    // mutation_pro=xmutation_pro;
+    mutation_pro=1.0/30.0;
     population_num=xPopulationNum;
     problem_func=xproblem_func;
     func_init(problem_func);
@@ -69,8 +70,9 @@ string xproblem_func
     obj_num=iobj_num;
     upperbound=ub;
     lowerbound=lb;
-    dimm=20;
-    dimc=20;
+    
+    // dimm=20;//real-coded ngsaii
+    // dimc=20;//real-coded nsgaii
 }
 
 
@@ -285,9 +287,9 @@ nsgaii::population nsgaii::run(){
             cout<<endl;
         }*/
         
-       cout<<"this is currentSol size:"<<currentSol[0].size()<<endl;
+    //   cout<<"this is currentSol size:"<<currentSol[0].size()<<endl;
         newSol=fast_non_dominated(currentSol);
-        cout<<"this is newSol size:"<<newSol[0].size()<<endl;
+        // cout<<"this is newSol size:"<<newSol[0].size()<<endl;
         for(int j=0;j<numIter;j++){
             
             TS(newSol);
@@ -301,6 +303,7 @@ nsgaii::population nsgaii::run(){
             currentSol=fast_non_dominated(newSol);
             
             newSol=currentSol;
+
             //iter_obj_avg[j]+=best_obj_value;
         }
         obj_val=fitness(newSol);

@@ -7,10 +7,8 @@
 #include <fstream>
 #include <iomanip>
 #include <limits>
-
-#include "dataset.cpp"
-#include"function_init.cpp"
-
+#include <random>
+#include "../test_problem.h"
 
 using namespace std;
 # define EPS 1.0e-14
@@ -20,7 +18,7 @@ class bnsgaii{
 		typedef vector<int> solution;
         typedef vector<solution> population;
 		bnsgaii(int,int,int,double,double,string);
-		vector<vector<double>> run();
+		void run();
 	private:
 		void init(vector<population>&);
 		void crossover(vector<population>&);
@@ -35,6 +33,7 @@ class bnsgaii{
         void quick_sort_dis(vector<double>&,solution&,int,int);
 
 private:
+    
 	int numRuns;
 	int numIter;
 	vector<vector<double>> obj_val;
@@ -42,12 +41,15 @@ private:
     int population_num;
 	double mutation_pro;
     double crossover_pro;
-    string problem_func;
+    string func_name;
     int dimension; //每一個解的維度
     int obj_num; //目標數量
     vector<double> upperbound;
     vector<double> lowerbound;
     solution nbits;
+    test_problem func;
+    std::random_device rd;
+    std::default_random_engine gen = std::default_random_engine(rd());
     
 };
 
@@ -56,23 +58,26 @@ int xNumIter,
 int xPopulationNum,
 double xcrossover_pro,
 double xmutation_pro,
-string xproblem_func
+string xfunc_name
 )
 {
+    
     srand(time(0));
     numRuns=xNumRuns;
 	numIter=xNumIter;
+    population_num=xPopulationNum;
+    func_name=xfunc_name;
+    func=test_problem(func_name);
+    dimension=func.idimension;
+    obj_num=func.iobj_num;
+    upperbound=func.ub;
+    lowerbound=func.lb;
+    nbits=func.xbits;
     crossover_pro=xcrossover_pro;
     mutation_pro=xmutation_pro;
-    // mutation_pro=1/30;
-    population_num=xPopulationNum;
-    problem_func=xproblem_func;
-    func_init(problem_func);
-    dimension=idimension;
-    obj_num=iobj_num;
-    upperbound=ub;
-    lowerbound=lb;
-    nbits=xbits;
+    // mutation_pro=1.0/(nbits[0]*dimension);
+    if(func_name=="SCH")
+        mutation_pro=0.08;
 
 }
 vector<vector<double>> bnsgaii::decode(vector<population> all_sol){
@@ -103,7 +108,9 @@ void bnsgaii::init(vector<population>& currentSol){
         for (int j=0; j<dimension; j++)  
             for (int k=0; k<nbits[j]; k++)
             {
-                rnd=(double)rand()/RAND_MAX;
+                // rnd=(double)rand()/RAND_MAX;
+                std::uniform_real_distribution<double> dis(0,1);
+                rnd=dis(gen);
                 if (rnd <= 0.5)
                     currentSol[i][j][k] = 0;              
                 else               
@@ -133,6 +140,8 @@ void bnsgaii::TS(vector<population> &all_sol){
 
 
 void bnsgaii::crossover(vector<population> &parent){
+    //two-point crossover
+    /*
     vector<population>child;
     child=parent;
     double rnd;
@@ -141,7 +150,6 @@ void bnsgaii::crossover(vector<population> &parent){
   
     for (int i=0; i<population_num/2; i++)
     {
-       
         for(int j=0;j<dimension;j++){
             rnd = (double)rand()/RAND_MAX;
             if (rnd <= crossover_pro)
@@ -153,7 +161,40 @@ void bnsgaii::crossover(vector<population> &parent){
                     site1=site2;
                     site2=temp;
                 }
-                for(int k=site1;k<=site1;k++){
+                for(int k=site1;k<=site2;k++){
+                    child[y][j][k]=parent[y+1][j][k];
+                    child[y+1][j][k]=parent[y][j][k];
+                }
+    
+            }
+        }
+        y=y+2;
+        
+    }
+    parent=child;
+    return;*/
+    
+
+    //-------------single point crossover----------------//
+    vector<population>child;
+    child=parent;
+    double rnd;
+    int temp, site1;
+    int y=0;
+  
+    for (int i=0; i<population_num/2; i++)
+    {
+        for(int j=0;j<dimension;j++){
+            // rnd = (double)rand()/RAND_MAX;
+            std::uniform_real_distribution<double> dis(0,1);
+            rnd=dis(gen);
+            if (rnd <= crossover_pro)
+            {
+                std::uniform_int_distribution<int> gene(0,nbits[j]-2);
+                site1=gene(gen);
+                // site1 = rand()%(nbits[j]-1);
+                
+                for(int k=0;k<=site1;k++){
                     child[y][j][k]=parent[y+1][j][k];
                     child[y+1][j][k]=parent[y][j][k];
                 }
@@ -165,6 +206,75 @@ void bnsgaii::crossover(vector<population> &parent){
     }
     parent=child;
     return;
+    
+    //不分維度各維度一起crossover
+    // vector<population>child;
+    // child=parent;
+    // double rnd;
+    // int temp, site1;
+    // int y=0;
+    // int chrom=0,c,w_dim,w_bit;
+    // for(int i=0;i<dimension;i++)
+    //     chrom+=nbits[i];
+    // for (int i=0; i<population_num/2; i++)
+    // {
+
+    //     rnd = (double)rand()/RAND_MAX;
+    //     if (rnd <= crossover_pro)
+    //     {
+    //         rnd=(double)rand()/RAND_MAX;
+    //         c=floor(rnd*(chrom+10));
+            
+    //         site1 = c;
+    //         if(site1>=chrom)
+    //             site1=site1/2;
+            
+    //         for(int j=0;j< chrom;j++){
+                
+    //             w_dim=j/nbits[0];           
+    //             w_bit=j%nbits[0];
+    //             if(j>site1-1){    
+    //                 child[y][w_dim][w_bit]=parent[y+1][w_dim][w_bit];        
+    //                 child[y+1][w_dim][w_bit]=parent[y][w_dim][w_bit];
+    //             }
+    //         }
+    //     }
+    //     y=y+2;  
+    // }
+    // parent=child;
+    // return;
+    
+
+    // vector<population>child;
+    // child=parent;
+    // double rnd;
+    // int temp, site1;
+    // int y=0;
+  
+    // for (int i=0; i<population_num/2; i++)
+    // {
+    //     std::uniform_real_distribution<double> dis(0,1);
+    //     rnd=dis(gen);
+    //     // rnd = (double)rand()/RAND_MAX;
+    //     if (rnd <= crossover_pro)
+    //     {
+    //         for(int j=0;j<dimension;j++){
+
+    //         // site1 = rand()%(nbits[j]-1);
+    //         std::uniform_int_distribution<int> gene(0,nbits[j]-2);
+    //         site1=gene(gen);
+    //             for(int k=0;k<=site1;k++){
+    //                 child[y][j][k]=parent[y+1][j][k];
+    //                 child[y+1][j][k]=parent[y][j][k];
+    //             }
+    //         }
+    //     }
+        
+    //     y=y+2;
+        
+    // }
+    // parent=child;
+    // return;
 }
 void bnsgaii::mutation(vector<population>& all_sol){
 
@@ -173,7 +283,9 @@ void bnsgaii::mutation(vector<population>& all_sol){
         for (int j=0; j<dimension; j++)
             for (int k=0; k<nbits[j]; k++)
             {
-                prob = (double)rand()/RAND_MAX;
+                std::uniform_real_distribution<double> dis(0,1);
+                prob=dis(gen);
+                // prob = (double)rand()/RAND_MAX;
                 if (prob <=mutation_pro)
                     all_sol[i][j][k]=(all_sol[i][j][k]+1)%2;            
             }
@@ -182,13 +294,13 @@ void bnsgaii::mutation(vector<population>& all_sol){
 
 }
 //-----------------------------------------------------run nsga2 algorithm----------------------------------------------------------//
-vector<vector<double>> bnsgaii::run(){
+void bnsgaii::run(){
     
     vector<double>iter_obj_avg(numIter,0.0);
     vector<population> old_binary_sol(population_num,population(dimension));
     vector<population> new_binary_sol;
     vector<vector<double>> real_sol(population_num,vector<double>(dimension));
-
+    
    for(int i=0;i<population_num;i++)
        for(int j=0;j<dimension;j++)     
            old_binary_sol[i][j].resize(nbits[j]);
@@ -216,7 +328,7 @@ vector<vector<double>> bnsgaii::run(){
             crossover(new_binary_sol);
             
             mutation(new_binary_sol);
-            
+    
             //IGD
             new_binary_sol.insert(new_binary_sol.end(),old_binary_sol.begin(),old_binary_sol.end());//combination
             real_sol=decode(new_binary_sol);
@@ -227,12 +339,21 @@ vector<vector<double>> bnsgaii::run(){
         }
         real_sol=decode(new_binary_sol);
         obj_val=fitness(real_sol);
+        //輸出該RUN的所有解
+        ofstream output_obj;
+        output_obj.open("pareto/"+func_name+"/bnsga2/"+func_name+"_bnsga2_"+to_string(i)+".txt");
+          for(int k=0;k<population_num;k++){
+            for(int l=0;l<obj_num;l++)
+                output_obj<<obj_val[k][l]<<" ";
+            output_obj<<endl;
+        }
+        output_obj.close();
     }
     /*
     for(int i=0;i<numIter;i++)
         cout<<fixed<<setprecision(3)<<iter_obj_avg[i]/numRuns<<endl;
     */
-    return obj_val;
+    // return obj_val;
 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------//
@@ -360,8 +481,6 @@ vector<bnsgaii::population> bnsgaii::fast_non_dominated(vector<population>& new_
     return final_population;
 }
 
-
-
 // bnsgaii::solution bnsgaii::crowding_dis_assign(solution this_rank){
    
 //     int solution_num=this_rank.size();
@@ -431,7 +550,7 @@ vector<bnsgaii::population> bnsgaii::fast_non_dominated(vector<population>& new_
 //     obj_sorting(init_dis,this_rank);
 //     return this_rank;
 // }
-//-------------------------------------------Insertion sort--------------------------------------------------//
+// //-------------------------------------------Insertion sort--------------------------------------------------//
 // void bnsgaii::obj_sorting(vector<double> &sort_obj,solution& sorting_id){
 //     double max,tmp;
 //     int max_pos;
@@ -457,30 +576,50 @@ vector<bnsgaii::population> bnsgaii::fast_non_dominated(vector<population>& new_
 // }
 //------------------------------------------------------------------------------------------------------------//
 vector<vector<double>> bnsgaii::fitness(vector<vector<double>> & all_sol) {
-    if(problem_func=="SCH")
-        return SCH(all_sol);
-    else if(problem_func=="FON")
-        return FON(all_sol);
-    else if(problem_func=="POL")
-        return POL(all_sol);
-    else if(problem_func=="KUR")
-        return KUR(all_sol);
-    else if(problem_func=="ZDT1")
-        return ZDT1(all_sol);
-    else if(problem_func=="ZDT2")
-        return ZDT2(all_sol);
-    else if(problem_func=="ZDT3")
-        return ZDT3(all_sol);
-    else if(problem_func=="ZDT4")
-        return ZDT4(all_sol);
-    else if(problem_func=="ZDT6")
-        return ZDT6(all_sol);
-    else if(problem_func=="UF1")
-        return UF1(all_sol);
+    
+    if(func_name=="SCH")
+        return func.SCH(all_sol);
+    else if(func_name=="FON")
+        return func.FON(all_sol);
+    else if(func_name=="POL")
+        return func.POL(all_sol);
+    else if(func_name=="KUR")
+        return func.KUR(all_sol);
+    else if(func_name=="ZDT1")
+        return func.ZDT1(all_sol);
+    else if(func_name=="ZDT2")
+        return func.ZDT2(all_sol);
+    else if(func_name=="ZDT3")
+        return func.ZDT3(all_sol);
+    else if(func_name=="ZDT4")
+        return func.ZDT4(all_sol);
+    else if(func_name=="ZDT6")
+        return func.ZDT6(all_sol);
+    else if(func_name=="UF1")
+        return func.UF1(all_sol);
+    else if(func_name=="UF2")
+        return func.UF2(all_sol);
+    else if(func_name=="UF3")
+        return func.UF3(all_sol);
+    else if(func_name=="UF4")
+        return func.UF4(all_sol);
+    else if(func_name=="UF5")
+        return func.UF5(all_sol);
+    else if(func_name=="UF6")
+        return func.UF6(all_sol);
+    else if(func_name=="UF7")
+        return func.UF7(all_sol);
+    else if(func_name=="UF8")
+        return func.UF8(all_sol);
+    else if(func_name=="UF9")
+        return func.UF9(all_sol);
+    else if(func_name=="UF10")
+        return func.UF10(all_sol);
 
 }
 
 //--------------------------------------------Use Quick Sort------------------------------------------------------//
+
 void bnsgaii::quick_sort(int obj_level,solution& obj_id,solution& sorting_id,int left,int right){
     int index;
     int temp;
@@ -557,31 +696,35 @@ bnsgaii::solution bnsgaii::crowding_dis_assign(solution this_rank){
             }
         }
     //距離密度值進行正規化
-    for (int j=0; j<front_size; j++)
+    for (int j=0; j<front_size; j++){
         if (init_dis[j]!= numeric_limits<double>::infinity())
            init_dis[j] = init_dis[j]/obj_num;
-        
+        //    cout<<"init_dis "<<j<<": "<<init_dis[j]<<endl;
+    }
+    
     
     quick_sort_dis(init_dis,this_rank,0,front_size-1);
     reverse(this_rank.begin(),this_rank.end());
     return this_rank;
 }
+
 void bnsgaii::quick_sort_dis(vector<double>& init_dis,solution& this_rank,int left,int right){
     int index;
-    int temp;
+    int int_tmp;
+    double double_tmp;
     int i, j;
     double pivot;
     if (left<right)
     {
         index = rand()%(right-left+1)+left;
 
-        temp = init_dis[right];
+        double_tmp = init_dis[right];
         init_dis[right] = init_dis[index];
-        init_dis[index] = temp;
+        init_dis[index] = double_tmp;
 
-        temp = this_rank[right];
+        int_tmp = this_rank[right];
         this_rank[right] = this_rank[index];
-        this_rank[index] = temp;
+        this_rank[index] = int_tmp;
 
         pivot = init_dis[right];
 
@@ -591,28 +734,88 @@ void bnsgaii::quick_sort_dis(vector<double>& init_dis,solution& this_rank,int le
             if (init_dis[j] <= pivot)
             {
                 i+=1;
-                temp = init_dis[j];
+                double_tmp = init_dis[j];
                 init_dis[j] = init_dis[i];
-                init_dis[i] = temp;
+                init_dis[i] = double_tmp;
                 
-                temp = this_rank[j];
+                int_tmp = this_rank[j];
                 this_rank[j] = this_rank[i];
-                this_rank[i] = temp;
+                this_rank[i] = int_tmp;
             }
         }
         index=i+1;
-        temp = init_dis[index];
+        double_tmp = init_dis[index];
         init_dis[index] = init_dis[right];
-        init_dis[right] = temp;
+        init_dis[right] = double_tmp;
 
-        temp = this_rank[index];
+        int_tmp = this_rank[index];
         this_rank[index] = this_rank[right];
-        this_rank[right] = temp;
+        this_rank[right] = int_tmp;
 
         quick_sort_dis(init_dis,this_rank, left, index-1);
         quick_sort_dis(init_dis,this_rank, index+1, right);
     }
 }
+//記得刪除----------------------------------------------------------------------------//
+/*
+bnsgaii::solution bnsgaii::crowding_dis_assign(solution this_rank){
+   
+    int solution_num=this_rank.size();
+    vector<double> init_dis(solution_num,0.0);
+    vector<vector<double>> this_obj_val(solution_num);
 
+    for(int i=0;i<solution_num;i++){
+        this_obj_val[i]=obj_val[this_rank[i]];
+    }
+
+    solution tmp_id(solution_num);
+    population sorting_id(obj_num);
+    for(int i=0;i<solution_num;i++)
+        tmp_id[i]=i;
+    for(int i=0;i<obj_num;i++)
+        sorting_id[i]=tmp_id;
+    //列行互換
+    vector<vector<double>> row_obj_val(obj_num,vector<double>(solution_num));
+    for(int i=0;i<obj_num;i++)
+        for(int j=0;j<solution_num;j++)
+            row_obj_val[i][j]=this_obj_val[j][i];
+
+    //對各目標進行排序
+    
+    // obj_sorting(row_obj_val[0],sorting_id[0]);
+    // sorting_id[1]=sorting_id[0];
+    // reverse(sorting_id[1].begin(),sorting_id[1].end());
+    // vector<double> origin_obj1;
+    // origin_obj1=row_obj_val[1];
+    // for(int i=0;i<solution_num;i++)
+    //     row_obj_val[1][i]=origin_obj1[sorting_id[1][i]];
+    for(int i=0;i<obj_num;i++)
+        quick_sort_dis(row_obj_val[i],sorting_id[i],0,solution_num-1);
+
+    //計算擁擠程度
+    for (int i=0; i<obj_num; i++)
+        init_dis[sorting_id[i][0]]= std::numeric_limits<double>::infinity();
+
+    for(int i=0;i<obj_num;i++)
+        for(int j=1;j<solution_num-1;j++){
+             if(init_dis[j]!=numeric_limits<double>::infinity()){
+                 if(row_obj_val[i][solution_num-1]==row_obj_val[i][0])
+                    init_dis[sorting_id[i][j]]+=0.0;
+                else
+                    init_dis[sorting_id[i][j]]+=(row_obj_val[i][j+1]-row_obj_val[i][j-1])/(row_obj_val[i][solution_num-1]-row_obj_val[i][0]);
+             }
+        }
+    //距離密度值進行正規化
+    for (int j=0; j<solution_num; j++){
+        if (init_dis[j]!= numeric_limits<double>::infinity())
+           init_dis[j] = init_dis[j]/obj_num;
+        //記得刪
+        cout<<"init_dis "<<j<<" : "<<init_dis[j]<<endl;
+    }
+    
+    quick_sort_dis(init_dis,this_rank,0,solution_num-1);
+    reverse(this_rank.begin(),this_rank.end());
+}
+*/
 #endif
        

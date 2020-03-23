@@ -5,52 +5,60 @@
 #include<vector>
 #include"evaluate.cpp"
 #include"NSGAII/bnsgaii.h"
+#include"SE/se.h"
 // #include"MOPSO/mopso.h"
 // #include"MOPSO/mopso(noWH).h"
 
 using namespace std;
-/*
-vector<int>test1(vector<int> th){
-    th[0]=50;
-    th[1]=49;
-    th[2]=48;
-    th.push_back(47);
-    return th;
-}*/
-int main(int argc,char **argv)
+
+ int main(int argc,char **argv)
 {
     clock_t start,finish;
     double duration;
-    cout<<"Algorithm:"<<argv[1]<<endl;                      //nsga2
-    cout<<"Number of runs:"<<argv[2]<<endl;          //default 30
-    cout<<"Number of iterations:"<<argv[3]<<endl;//default 250
-    cout<<"Number of population:"<<argv[4]<<endl;                  //default 500
-    
+    // cout<<"Algorithm:"<<argv[1]<<endl;                      //nsga2
+    // cout<<"Number of runs:"<<argv[2]<<endl;          //default 30
+    // cout<<"Number of iterations:"<<argv[3]<<endl;//default 250
+                 
+   
     if(!strcmp(argv[1],"bnsga2"))
     {
+        // cout<<"Number of population:"<<argv[4]<<endl;//default 500    
+        
         bnsgaii search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atof(argv[5]),atof(argv[6]),argv[7]);
-        vector<vector<double>> sol=search.run();
-        /*
-        for(int i=0;i<sol.size();i++)
-            cout<<sol[i];
-        cout<<endl;*/
-        for(int i=0;i<sol.size();i++){
-            for(int j=0;j<sol[i].size();j++)
-                cout<<sol[i][j]<<" ";
-            cout<<endl;
-        }
-        // old_IGD("FON",2,500);
-        // old_IGD("SCH",2,500);
-        // old_IGD("ZDT1",2,500);
-        // old_IGD("ZDT2",2,500);
-        // old_IGD("ZDT3",2,500);
-        // old_IGD("ZDT4",2,100);
-        // old_IGD("ZDT6",2,500);
+        
+        search.run();
 
+        int run_num=atoi(argv[2]);
+        int pop_num=atoi(argv[4]);
+        string func_name=argv[7];
+        double tmp;
+        double sum_IGD=0;
+        double sum_SP=0;
+        double sum_MS=0;
+        ofstream output_igd;
+        output_igd.open("pareto/"+func_name+"/bnsga2/IGD.txt");
+        for(int i=0;i<run_num;i++){
+            tmp=IGD(func_name,"bnsga2",i,2,pop_num,500);
+            sum_IGD+=tmp;
+            output_igd<<tmp<<endl;
+        }
+        output_igd<<sum_IGD/run_num<<endl;
+        output_igd.close();
+
+        ofstream output_sp;
+        output_sp.open("pareto/"+func_name+"/bnsga2/SP.txt");
+        for(int i=0;i<run_num;i++){
+            tmp=SP(func_name,"bnsga2",i,2,pop_num,500);
+            sum_SP+=tmp;
+            output_sp<<tmp<<endl;
+        }
+        output_sp<<sum_SP/run_num<<endl;
+        output_sp.close();
+        
     }
 
     // else if(!strcmp(argv[1],"mopso")){
-
+    //     cout<<"Number of population:"<<argv[4]<<endl;     
     //     start=clock();
     //     mopso search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atof(argv[5]),atoi(argv[6]),argv[7]);
     //     mopso::population sol=search.run();
@@ -64,6 +72,48 @@ int main(int argc,char **argv)
     //     }
     //     cout<<fixed<<setprecision(4)<<duration<<".sec"<<endl;
     // }
+     if(!strcmp(argv[1],"se"))
+    {
+        
+        se search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),atoi(argv[6]),atoi(argv[7]),atoi(argv[8]),argv[9],atof(argv[10]),atof(argv[11]));
+        search.run();
+     
+        // for(int i=0;i<sol.size();i++){
+        //     for(int j=0;j<sol[i].size();j++)
+        //         cout<<sol[i][j]<<" ";
+        //     cout<<endl;
+        // }
+        int run_num=atoi(argv[2]);
+        int pop_num=atoi(argv[4]);
+        string func_name=argv[9];
+        double tmp;
+        double sum_IGD=0;
+        double sum_SP=0;
+        double sum_MS=0;
+        ofstream output_igd;
+        output_igd.open("pareto/"+func_name+"/se/IGD.txt");
+        for(int i=0;i<run_num;i++){
+            tmp=IGD(func_name,"se",i,2,pop_num,500);
+            sum_IGD+=tmp;
+            output_igd<<tmp<<endl;
+        }
+        output_igd<<sum_IGD/run_num<<endl;
+        output_igd.close();
 
+        ofstream output_sp;
+        output_sp.open("pareto/"+func_name+"/se/SP.txt");
+        for(int i=0;i<run_num;i++){
+            tmp=SP(func_name,"se",i,2,pop_num,500);
+            sum_SP+=tmp;
+            output_sp<<tmp<<endl;
+        }
+        output_sp<<sum_SP/run_num<<endl;
+        output_sp.close();
+        
+
+    }
+    
     return 0;
+
 }
+
