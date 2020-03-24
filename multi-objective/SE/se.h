@@ -135,8 +135,8 @@ double in_mutation_pro
     tatb_pressure=2;
     dominate_pressure=3;
     crossover_pro=in_crossover_pro;
-    // mutation_pro=in_mutation_pro;
-    mutation_pro=1.0/(nbits[0]*dim);
+    mutation_pro=in_mutation_pro;
+    // mutation_pro=1.0/(nbits[0]*dim);
 }
 
 
@@ -705,20 +705,37 @@ void se::choose_sample(int choose_method){
     }
     //以下採用(3)(2020/03/17 add in)
     else if(choose_method==3){
-        for (int i = 0; i < searcher_num ; i++) 
-            for(int j = 0; j < region_num; j++) 
-                for (int k = 0; k < sample_num; k++) {
-                    if (sampleV_cdr_fit[i][j][k*2] > sample_cdr_fit[j][k]) {
-                   
-                        sample[j][k]= sampleV[i][j][k*2];
-                        sample_cdr_fit[j][k] = sampleV_cdr_fit[i][j][k*2];
-                    }
-                    if (sampleV_cdr_fit[i][j][k*2+1] > sample_cdr_fit[j][k]) {
-                        
-                        sample[j][k] = sampleV[i][j][k*2+1];
-                        sample_cdr_fit[j][k] = sampleV_cdr_fit[i][j][k*2+1];
+        int selected_samV1,selected_samV2,V1_1,V1_3,V2_1,V2_3;
+        for(int i=0;i<region_num;i++){
+            for(int j=0;j<sample_num;j++){
+                selected_samV1=rand()%(sample_num*2*searcher_num);
+                do{
+                    selected_samV2=rand()%(sample_num*2*searcher_num);
+                }while(selected_samV2==selected_samV1);
+                V1_1=selected_samV1/(sample_num*2);
+                V1_3=selected_samV1%(sample_num*2);
+                V2_1=selected_samV2/(sample_num*2);
+                V2_3=selected_samV2%(sample_num*2);
+                // cout<<V1_1<<" "<<V1_3<<endl;
+                // cout<<V2_1<<" "<<V2_3<<endl<<endl;
+               
+                if(sampleV_cdr_fit[V1_1][i][V1_3]>sampleV_cdr_fit[V2_1][i][V2_3]){
+                    //以下if考慮是否刪除增加多樣性
+                    if(sample_cdr_fit[i][j]<sampleV_cdr_fit[V1_1][i][V1_3]){
+                        sample[i][j]= sampleV[V1_1][i][V1_3];
+                        sample_cdr_fit[i][j] = sampleV_cdr_fit[V1_1][i][V1_3];
                     }
                 }
+                else{
+                    //以下if考慮是否刪除增加多樣性
+                    if(sample_cdr_fit[i][j]<sampleV_cdr_fit[V2_1][i][V2_3]){
+                        sample[i][j]= sampleV[V2_1][i][V2_3];
+                        sample_cdr_fit[i][j] = sampleV_cdr_fit[V2_1][i][V2_3];
+                    }
+                }
+                
+            }
+        }
     }
     
 }
