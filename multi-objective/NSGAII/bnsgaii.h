@@ -74,10 +74,10 @@ string xfunc_name
     lowerbound=func.lb;
     nbits=func.xbits;
     crossover_pro=xcrossover_pro;
-    mutation_pro=xmutation_pro;
-    // mutation_pro=1.0/(nbits[0]*dimension);
-    if(func_name=="SCH")
-        mutation_pro=0.08;
+    // mutation_pro=xmutation_pro;
+    mutation_pro=1.0/(nbits[0]*dimension);
+    // if(func_name=="SCH")
+    //     mutation_pro=0.08;
 
 }
 vector<vector<double>> bnsgaii::decode(vector<population> all_sol){

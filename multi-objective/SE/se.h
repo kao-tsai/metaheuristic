@@ -42,6 +42,7 @@ class se{
         void quick_sort(dd1&,d1&,int,int);
         void quick_sort_obj(int,d1&,d1&,int,int);
         void archive_delete();
+        void print_each_plot(int,dd2&);
 private:
 	int numRuns;
 	int numIter;
@@ -94,11 +95,15 @@ private:
     double crossover_pro;
     double mutation_pro;
     double tatb_pressure;
- 
-    double dominate_pressure;
 
+    double dominate_pressure;
+    double crowd_p;
+    double crowd_p_max;
+    
+    int tmp_iter;
     string func_name;
     test_problem func;
+    int deleted_pos;
 };
 
 se::se(int xNumRuns,
@@ -132,11 +137,12 @@ double in_mutation_pro
     lowerbound=func.lb;
     upperbound=func.ub;
     full_sample_num=sample_num*region_num;
-    tatb_pressure=2;
-    dominate_pressure=3;
+    // tatb_pressure=2;
+    dominate_pressure=3;//3
     crossover_pro=in_crossover_pro;
     mutation_pro=in_mutation_pro;
     // mutation_pro=1.0/(nbits[0]*dim);
+
 }
 
 
@@ -154,7 +160,11 @@ void se::init(){
     sampleV_cdr_fit.assign(searcher_num,dd2(region_num,dd1(sample_num*2,0.0)));
     region_best_fit.assign(region_num,0);
 
-    
+    //擴充upperbound和lowerbound
+    // for(int i=0;i<dim;i++){
+    //     upperbound[i]+=upperbound[i]*0.5;
+    //     lowerbound[i]+=lowerbound[i]*0.5;
+    // }
     archive=d3(searcher_num+region_num*sample_num);
 	for (int i = 0; i < searcher_num; i++){
         for(int j=0;j<dim;j++)
@@ -206,6 +216,7 @@ void se::arrange(){
     clip_bit_num=log2(region_num);
     
     init_region_bit();
+    
     //--------------------專注於第1個維度切割---------------------//
     for(int i=0;i<searcher_num;i++){
         searcher_belong[i]=i%region_num;
@@ -236,15 +247,16 @@ void se::arrange(){
         tb[searcher_belong[i]]++;
         ta[searcher_belong[i]]=1.0;
     }
-                
+         
     EV.assign(searcher_num,dd1(region_num,0.0));
-
+    
    //取得所有二元解的實數解並計算Objective Value
     int archive_size=archive.size();
     dd2 archive_real_sol(archive_size);
     archive_fit.clear();//可能不需要
     for(int i=0;i<archive_size;i++)
         archive_real_sol[i]=decode(archive[i]);
+    
     archive_fit=fitness(archive_real_sol);
     
 
@@ -289,7 +301,7 @@ void se::arrange(){
     tmp_archive=archive;
     archive=d3(rank_0.size());
      for(int i=0;i<rank_0.size();i++)
-            archive[i]=tmp_archive[rank_0[i]];
+        archive[i]=tmp_archive[rank_0[i]];
     
 }
 
@@ -303,7 +315,8 @@ void se::ga_crossover(){
                 for(int l=0;l<dim;l++){
                     rnd=(double)rand()/RAND_MAX;
                     if(rnd<crossover_pro){
-                        crossover_point=rand()%(nbits[l]-1)+1;
+                        // crossover_point=rand()%(nbits[l]-1)+1;
+                        crossover_point=rand()%(nbits[l]-1-clip_bit_num)+clip_bit_num;
                         //若維度在第1維度要固定切割的區域
                         if(l==0){
                             for (int m = 0; m < clip_bit_num; m++) {
@@ -492,7 +505,7 @@ void se::cal_cdr_fit(){
             rank_0.pop_back();
     }
     //2.只存rank1的解但可能會出錯
-    //rank_0=rank[0];
+    // rank_0=rank[0];
 
     ///----------------------------------------------------///
     // cout<<"rank size "<<rank.size()<<endl;
@@ -533,7 +546,8 @@ void se::cal_cdr_fit(){
     
 }
 
-//記得刪除--------------------------------------------------------------------//(試試是否正確)
+//--------------------------------------------------------------------//(試試是否正確)
+
 void se::crowding_dis_assign(d1& this_rank){
    
     int front_size=this_rank.size();
@@ -541,6 +555,8 @@ void se::crowding_dis_assign(d1& this_rank){
 
     d2 sorting_id(obj_num,d1(front_size));
     d2 obj_id(obj_num);
+    //--------各目標均可用--------//
+    
     for(int i=0;i<obj_num;i++){
         for(int j=0;j<front_size;j++)
             sorting_id[i][j]=j;
@@ -548,91 +564,45 @@ void se::crowding_dis_assign(d1& this_rank){
         quick_sort_obj(i,obj_id[i],sorting_id[i],0,front_size-1);
     }
     
+    //---------2目標專用---------//
+    /*
+    for(int j=0;j<front_size;j++)
+        sorting_id[0][j]=j;
+    obj_id[0]=this_rank;
+    quick_sort_obj(0,obj_id[0],sorting_id[0],0,front_size-1);
+    obj_id[1]=obj_id[0];
+    sorting_id[1]=sorting_id[0];
+    reverse(obj_id[1].begin(),obj_id[1].end());
+    reverse(sorting_id[1].begin(),sorting_id[1].end());
+    */
+    //------------------------//
+
     //計算擁擠程度
     for (int i=0; i<obj_num; i++)
         init_dis[sorting_id[i][0]]= std::numeric_limits<double>::infinity();
-    
     for(int i=0;i<obj_num;i++)
         for(int j=1;j<front_size-1;j++){
-            if(init_dis[j]!=numeric_limits<double>::infinity()){
-                if(combine_fit[this_rank[sorting_id[i][front_size-1]]][i]== combine_fit[this_rank[sorting_id[i][0]]][i])
-                    init_dis[sorting_id[i][j]]+=0.0;
-                else
+            // if(init_dis[j]!=numeric_limits<double>::infinity()){
+                // if(combine_fit[this_rank[sorting_id[i][front_size-1]]][i]== combine_fit[this_rank[sorting_id[i][0]]][i])
+                //     init_dis[sorting_id[i][j]]+=0.0;
+                // else
                     init_dis[sorting_id[i][j]]+=(combine_fit[this_rank[sorting_id[i][j+1]]][i]-combine_fit[this_rank[sorting_id[i][j-1]]][i])/(combine_fit[this_rank[sorting_id[i][front_size-1]]][i]-combine_fit[this_rank[sorting_id[i][0]]][i]);
-            }
+            // }
         }
     //距離密度值進行正規化
     for (int j=0; j<front_size; j++){
         if (init_dis[j]!= numeric_limits<double>::infinity())
            init_dis[j] = init_dis[j]/obj_num;
-        //    cout<<"init_dis "<<j<<": "<<init_dis[j]<<endl;
     }
+    //
+    // d1 tmp_rank=this_rank;
+    // quick_sort(init_dis,tmp_rank,0,front_size-1);
+    // deleted_pos=tmp_rank[0];
     
     quick_sort(init_dis,this_rank,0,front_size-1);
-    reverse(this_rank.begin(),this_rank.end());
-    
+    reverse(this_rank.begin(),this_rank.end()); 
 }
-//可能會刪除
-/*
-void se::crowding_dis_assign(d1& this_rank){
-   
-    int solution_num=this_rank.size();
-    dd1 init_dis(solution_num,0.0);
-    dd2 this_obj_val(solution_num);
 
-    for(int i=0;i<solution_num;i++){
-        this_obj_val[i]=combine_fit[this_rank[i]];
-        
-    }
-
-    d1 tmp_id(solution_num);
-    d2 sorting_id(obj_num);
-    for(int i=0;i<solution_num;i++)
-        tmp_id[i]=i;
-    for(int i=0;i<obj_num;i++)
-        sorting_id[i]=tmp_id;
-    //列行互換
-    vector<vector<double>> row_obj_val(obj_num,vector<double>(solution_num));
-    for(int i=0;i<obj_num;i++)
-        for(int j=0;j<solution_num;j++)
-            row_obj_val[i][j]=this_obj_val[j][i];
-
-    //對各目標進行排序
-    
-    // obj_sorting(row_obj_val[0],sorting_id[0]);
-    // sorting_id[1]=sorting_id[0];
-    // reverse(sorting_id[1].begin(),sorting_id[1].end());
-    // vector<double> origin_obj1;
-    // origin_obj1=row_obj_val[1];
-    // for(int i=0;i<solution_num;i++)
-    //     row_obj_val[1][i]=origin_obj1[sorting_id[1][i]];
-    for(int i=0;i<obj_num;i++)
-        quick_sort(row_obj_val[i],sorting_id[i],0,solution_num-1);
-
-    //計算擁擠程度
-    for (int i=0; i<obj_num; i++)
-        init_dis[sorting_id[i][0]]= std::numeric_limits<double>::infinity();
-
-    for(int i=0;i<obj_num;i++)
-        for(int j=1;j<solution_num-1;j++){
-             if(init_dis[j]!=numeric_limits<double>::infinity()){
-                 if(row_obj_val[i][solution_num-1]==row_obj_val[i][0])
-                    init_dis[sorting_id[i][j]]+=0.0;
-                else
-                    init_dis[sorting_id[i][j]]+=(row_obj_val[i][j+1]-row_obj_val[i][j-1])/(row_obj_val[i][solution_num-1]-row_obj_val[i][0]);
-             }
-        }
-    //距離密度值進行正規化
-    for (int j=0; j<solution_num; j++){
-        if (init_dis[j]!= numeric_limits<double>::infinity())
-           init_dis[j] = init_dis[j]/obj_num;
-        //記得刪
-        cout<<"init_dis "<<j<<" : "<<init_dis[j]<<endl;
-    }
-    
-    quick_sort(init_dis,this_rank,0,solution_num-1);
-    reverse(this_rank.begin(),this_rank.end());
-}*/
 void se::cal_ev(){
 
     //暫存所有archive,sample,sampleV並做fast non-dominated sort記錄所有的rank和crowding distance
@@ -783,20 +753,64 @@ void se::select_player(){
     }
 }
 void se::archive_delete(){
+        
+        // if(tmp_iter==1990){
+        //     batch_true=true;
+        //     // for(int i=0;i<rank_0.size();i++)
+        //     //     cout<<rank_0[i]<<" ";
+        //     // cout<<endl;
+        //     crowding_dis_assign(rank_0);
+            
+        //     reverse(rank_0.begin(),rank_0.end());
+            
+        //     crowding_dis_assign(rank_0);
 
-       while(rank_0.size()>max_pareto){
+        //     exit(0);
+        // }
+        
+        dd2 check_del;
+        while(rank_0.size()>max_pareto){
+            
             crowding_dis_assign(rank_0);
-            rank_0.pop_back();
+            // if(tmp_iter==1990){
+            //     check_del.push_back(decode(combine_sol[rank_0[rank_0.size()-1]]));
+            // }
+        
+            // int dif=rank_0.size()-max_pareto;
+            // for(int i=0;i<dif;i++)
 
+            // for(int i=0;i<rank_0.size();i++)
+            //     if(deleted_pos==rank_0[i]){
+            //         rank_0.erase(rank_0.begin()+i,rank_0.begin()+i+1);
+            //         break;
+            //     }
+
+            rank_0.pop_back();
         }
+        
         archive=d3(rank_0.size());
         for(int i=0;i<rank_0.size();i++)
             archive[i]=combine_sol[rank_0[i]];
 
 }
-void se::run(){
+void se::print_each_plot(int iter_now,dd2& real_sol){
+    dd2 output_iter(real_sol.size());
+
+    output_iter=fitness(real_sol);
+    //輸出該RUN的所有解
+    ofstream output_obj;
+    output_obj.open("test_delete/"+func_name+"_se_"+to_string(iter_now)+".txt");
+    for(int k=0;k<real_sol.size();k++){
+        for(int l=0;l<obj_num;l++)
+            output_obj<<output_iter[k][l]<<" ";
+        output_obj<<endl;
+    }
+    output_obj.close();
     
-    dd1 iter_obj_avg(numIter,0.0);
+}
+void se::run(){
+    dd2 real_sol(max_pareto);
+
     for(int i=0;i<numRuns;i++){
         
         init();
@@ -804,31 +818,29 @@ void se::run(){
         arrange();
        
         for(int j=0;j<numIter;j++){
-           
+            tmp_iter=j;
             ga_crossover();
             
             ga_mut();
-            // cout<<j<<" : hello"<<endl;
+            
             cal_ev();
             
             select_player();
             
             marketing_survey();
-            
-            // iter_obj_avg[j]+=best_obj_val;
+            // cout<<tmp_iter<<endl;
+            // print_each_plot(j,real_sol);
         }
 
     // for(int i=0;i<numIter;i++)
     //     cout<<fixed<<setprecision(3)<<iter_obj_avg[i]/numRuns<<endl;
-    dd2 real_sol(max_pareto);
+    
     // cout<<"archive_size="<<archive.size()<<endl;
     //Debug:max_pareto應改成archive_size
     for(int i=0;i<max_pareto;i++){
         // cout<<"decode"<<i<<endl;
         real_sol[i]=decode(archive[i]);
     }    
-
-    // cout<<"decode success"<<endl;
 
     dd2 output_archive(max_pareto);
     output_archive=fitness(real_sol);

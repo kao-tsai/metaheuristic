@@ -11,6 +11,8 @@ set output ARG1
 
 plot[ARG3:ARG4][ARG5:ARG6]ARG8 using 1:2 with lines lw 2 lc rgb "light-red" title 'opt', \
 ARG7 using 1:2 with points pt 6 lc rgb "web-blue" title 'pareto', \
+#ARG9 using 1:2 with points pt 6 lc rgb "web-green" title 'pareto1', \
+
 #plot [ARG3:ARG4][ARG5:ARG6]ARG7 using 1:2 pt 7 ps 1 title 'pareto'
 
 
