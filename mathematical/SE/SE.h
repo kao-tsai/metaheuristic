@@ -126,7 +126,7 @@ void se::init(){
 }
 void se::divide_region(){
     //Lower Bound在上，Upper Bound在下
-   region_bound.assign(region_num,dd2(2,dd1(clip_bit_num,0)));
+    region_bound.assign(region_num,dd2(2,dd1(clip_bit_num,0)));
     for(int i=0;i<region_num;i++){
         int bin=i;     
         for(int j=clip_bit_num-1;j>=0;j--){
@@ -153,7 +153,7 @@ void se::divide_region(){
     //     }
     // }
     // exit(1);
-    //-----------------------------------------------------------------------------------------------//
+    //------------------------------------------------------------------------------------------//
 }
 double se::bound_rand(double lw,double ub){
     return ((double)rand()/RAND_MAX)*(ub-lw)+lw;

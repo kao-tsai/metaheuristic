@@ -521,7 +521,7 @@ void opt::UF4(){
         sum1 = 0.0;
         count1 = 0;
         for(j = 2; j <= dimension; j++) {
-            yj1 = value[i][j-1]-sin(6.0*PI*value[i][0]+j*PI/dimension);
+            yj1 = value[i][j-1]-sin(6.0*PI*value[i][0]+(j*PI)/dimension);
             hj1 = fabs(yj1)/(1.0+exp(2.0*fabs(yj1)));
             if (j % 2 == 1) {
                 sum1  += hj1;
@@ -533,7 +533,7 @@ void opt::UF4(){
         sum2 = 0.0;
         count2 = 0;
         for(j = 2; j <= dimension; j++) {
-            yj2 = value[i][j-1]-sin(6.0*PI*value[i][0]+j*PI/dimension);
+            yj2 = value[i][j-1]-sin(6.0*PI*value[i][0]+(j*PI)/dimension);
             hj2 = fabs(yj2)/(1.0+exp(2.0*fabs(yj2)));
             if (j % 2 == 0) {
                 sum2  += hj2;

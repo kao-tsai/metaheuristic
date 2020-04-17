@@ -875,7 +875,8 @@ test_problem::population1 test_problem::ZDT4(population1 &all_sol){
             g += pow(all_sol[i][j],2)-10*cos(4*M_PI*all_sol[i][j]);
         }
         g = 1+10*(dimension-1)+g;
-        
+        // if(all_sol_obj[i][0]<0)
+        //     cout<<g<<endl;
         f2 = g*(1-sqrt(all_sol[i][0]/g));
         all_sol_obj[i][1] = f2;
     }
@@ -1022,7 +1023,7 @@ test_problem::population1 test_problem::UF2(population1 &all_sol){
             sum1 = 0.0;
             count1 = 0;
             for(j = 2; j <= dimension; j++) {
-                yj = all_sol[i][j-1]-sin(6.0*PI* all_sol[i][0]+j*PI/dimension);
+                yj = all_sol[i][j-1]-sin(6.0*PI* all_sol[i][0]+(j*PI)/dimension);
                 hj = fabs(yj)/(1.0+exp(2.0*fabs(yj)));
                 if (j % 2 == 1) {
                     sum1  += hj;

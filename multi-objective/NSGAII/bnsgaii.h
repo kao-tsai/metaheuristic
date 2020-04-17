@@ -688,18 +688,17 @@ bnsgaii::solution bnsgaii::crowding_dis_assign(solution this_rank){
     
     for(int i=0;i<obj_num;i++)
         for(int j=1;j<front_size-1;j++){
-            if(init_dis[j]!=numeric_limits<double>::infinity()){
-                if(obj_val[this_rank[sorting_id[i][front_size-1]]][i]== obj_val[this_rank[sorting_id[i][0]]][i])
-                    init_dis[sorting_id[i][j]]+=0.0;
-                else
+            // if(init_dis[j]!=numeric_limits<double>::infinity()){
+            //     if(obj_val[this_rank[sorting_id[i][front_size-1]]][i]== obj_val[this_rank[sorting_id[i][0]]][i])
+            //         init_dis[sorting_id[i][j]]+=0.0;
+            //     else
                     init_dis[sorting_id[i][j]]+=(obj_val[this_rank[sorting_id[i][j+1]]][i]-obj_val[this_rank[sorting_id[i][j-1]]][i])/(obj_val[this_rank[sorting_id[i][front_size-1]]][i]-obj_val[this_rank[sorting_id[i][0]]][i]);
-            }
+            // }
         }
     //距離密度值進行正規化
     for (int j=0; j<front_size; j++){
         if (init_dis[j]!= numeric_limits<double>::infinity())
            init_dis[j] = init_dis[j]/obj_num;
-        //    cout<<"init_dis "<<j<<": "<<init_dis[j]<<endl;
     }
     
     

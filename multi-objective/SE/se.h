@@ -8,8 +8,8 @@
 #include <vector>
 #include <fstream>
 #include <math.h>
-#include<iomanip>
-#include"../test_problem.h"
+#include <iomanip>
+#include "../test_problem.h"
 using namespace std;
 
 class se{
@@ -39,10 +39,17 @@ class se{
         void cal_cdr_fit();
         dd2 fitness(dd2&);
         void crowding_dis_assign(d1&);
+        void Euclidean_crowding(d1&);
+        double Euclidean_dis(dd1&,dd1&);
         void quick_sort(dd1&,d1&,int,int);
         void quick_sort_obj(int,d1&,d1&,int,int);
         void archive_delete();
+        void archive_delete_q(d1&);
+        void crowding_d_evaluate(d1&);
+        void Euclidean_archive_d(d1&);
+        void Euclidean_d_evaluate(d1&);
         void print_each_plot(int,dd2&);
+
 private:
 	int numRuns;
 	int numIter;
@@ -56,7 +63,6 @@ private:
     dd1 tb;
     d1 searcher_belong;
     dd2 EV;
-
     dd1 region_best_fit;//考慮是否改成cdr(當前最佳非支配解)
     
     // dd2 sample_fit;//各目標的Objective value()
@@ -304,8 +310,6 @@ void se::arrange(){
         archive[i]=tmp_archive[rank_0[i]];
     
 }
-
-
 void se::ga_crossover(){
     double rnd;
     int crossover_point,s_pos;
@@ -404,6 +408,7 @@ void se::cal_cdr_fit(){
         }
     
     //紀錄所有combine_sol的region_id
+    //可能有bug
     combine_region_id=d1(combine_sol.size(),-1);
     for(int i=0;i<store_sample_pos.size();i++){
         combine_region_id[store_sample_pos[i]]=i/sample_num;
@@ -486,14 +491,27 @@ void se::cal_cdr_fit(){
         rank_i.clear();
     }
 
+    //
+
     //做crowding_distance
     for(int i=0;i<rank.size();i++)
         if(rank[i].size()>2)
             crowding_dis_assign(rank[i]);
+
+    //使用歐基里得距離
+    // for(int i=0;i<rank.size();i++)
+    //     if(rank[i].size()>2)
+    //         Euclidean_crowding(rank[i]);
     
     //1.嘗試填滿archive(bugfix:2020/03/18)
-    if(rank[0].size()>max_pareto)
+    if(rank[0].size()>max_pareto){
         rank_0=rank[0];
+        //-----------------------------//
+        // Euclidean_d_evaluate(rank_0);
+        // crowding_d_evaluate(rank_0);
+        // rank[0]=rank_0;
+        //-----------------------------//
+    }
     else{
         rank_0=rank[0];
         int insert_rank_i=1;
@@ -503,6 +521,11 @@ void se::cal_cdr_fit(){
         }
         while(rank_0.size()>max_pareto)
             rank_0.pop_back();
+        //-------------------------------//
+        // archive=d3(rank_0.size());
+        // for(int i=0;i<rank_0.size();i++)
+        // archive[i]=combine_sol[rank_0[i]];
+        //-------------------------------//
     }
     //2.只存rank1的解但可能會出錯
     // rank_0=rank[0];
@@ -524,7 +547,17 @@ void se::cal_cdr_fit(){
             combine_cdr_fit[rank[i][j]]=giving_level*pow(dominate_pressure,(rank_size-i));
             giving_level=giving_level-1;
         }
-    
+
+    //將CDR值正規化
+    // double giving_level=(double)combine_size;
+    // double rank_size=(double)rank.size();
+    // combine_cdr_fit.assign(combine_size,0.0);
+    // for(int i=0;i<rank_size;i++)
+    //     for(int j=0;j<rank[i].size();j++){
+    //         combine_cdr_fit[rank[i][j]]=((giving_level-1)/(combine_size-1))*pow(dominate_pressure,((rank_size-i)-1)/(rank_size-1));
+    //         giving_level=giving_level-1;
+    //     }
+
     //存入Sample_cdr_fit和SampleV_cdr_fit
     int count=0;
     for(int i=0;i<region_num;i++)
@@ -543,11 +576,8 @@ void se::cal_cdr_fit(){
                 sampleV_cdr_fit[j][i][k*2+1]=combine_cdr_fit[count+1];
                 count+=2;
             }
-    
 }
-
 //--------------------------------------------------------------------//(試試是否正確)
-
 void se::crowding_dis_assign(d1& this_rank){
    
     int front_size=this_rank.size();
@@ -557,15 +587,15 @@ void se::crowding_dis_assign(d1& this_rank){
     d2 obj_id(obj_num);
     //--------各目標均可用--------//
     
-    for(int i=0;i<obj_num;i++){
-        for(int j=0;j<front_size;j++)
-            sorting_id[i][j]=j;
-        obj_id[i]=this_rank;
-        quick_sort_obj(i,obj_id[i],sorting_id[i],0,front_size-1);
-    }
+    // for(int i=0;i<obj_num;i++){
+    //     for(int j=0;j<front_size;j++)
+    //         sorting_id[i][j]=j;
+    //     obj_id[i]=this_rank;
+    //     quick_sort_obj(i,obj_id[i],sorting_id[i],0,front_size-1);
+    // }
     
     //---------2目標專用---------//
-    /*
+    
     for(int j=0;j<front_size;j++)
         sorting_id[0][j]=j;
     obj_id[0]=this_rank;
@@ -574,7 +604,7 @@ void se::crowding_dis_assign(d1& this_rank){
     sorting_id[1]=sorting_id[0];
     reverse(obj_id[1].begin(),obj_id[1].end());
     reverse(sorting_id[1].begin(),sorting_id[1].end());
-    */
+    
     //------------------------//
 
     //計算擁擠程度
@@ -768,10 +798,12 @@ void se::archive_delete(){
         //     exit(0);
         // }
         
-        dd2 check_del;
+        // dd2 check_del;
+        double r;
+        r=(double)rand()/RAND_MAX;
         while(rank_0.size()>max_pareto){
             
-            crowding_dis_assign(rank_0);
+            
             // if(tmp_iter==1990){
             //     check_del.push_back(decode(combine_sol[rank_0[rank_0.size()-1]]));
             // }
@@ -784,7 +816,10 @@ void se::archive_delete(){
             //         rank_0.erase(rank_0.begin()+i,rank_0.begin()+i+1);
             //         break;
             //     }
-
+            if(r<0.7)
+                crowding_dis_assign(rank_0);
+            else
+                Euclidean_crowding(rank_0);
             rank_0.pop_back();
         }
         
@@ -792,6 +827,486 @@ void se::archive_delete(){
         for(int i=0;i<rank_0.size();i++)
             archive[i]=combine_sol[rank_0[i]];
 
+}
+void se::archive_delete_q(d1& this_rank){
+            
+    int front_size=this_rank.size();
+    dd1 init_dis(front_size,0.0);
+
+    d2 sorting_id(obj_num,d1(front_size));
+    d2 obj_id(obj_num);
+    //--------各目標均可用--------//
+    for(int i=0;i<obj_num;i++){
+        for(int j=0;j<front_size;j++)
+            sorting_id[i][j]=j;
+        obj_id[i]=this_rank;
+        quick_sort_obj(i,obj_id[i],sorting_id[i],0,front_size-1);
+    }
+    //---------2目標專用---------//
+    // for(int j=0;j<front_size;j++)
+    //     sorting_id[0][j]=j;
+    // obj_id[0]=this_rank;
+    // quick_sort_obj(0,obj_id[0],sorting_id[0],0,front_size-1);
+    // obj_id[1]=obj_id[0];
+    // sorting_id[1]=sorting_id[0];
+    // reverse(obj_id[1].begin(),obj_id[1].end());
+    // reverse(sorting_id[1].begin(),sorting_id[1].end());
+    //------------------------//
+    // cout<<sorting_id[0][0]<<" xx "<<sorting_id[0][front_size-1]<<endl;
+    // cout<<sorting_id[1][0]<<" xx "<<sorting_id[1][front_size-1]<<endl;
+    //計算擁擠程度
+    for (int i=0; i<obj_num; i++)
+        init_dis[sorting_id[i][0]]= std::numeric_limits<double>::infinity();
+    for(int i=0;i<obj_num;i++)
+        for(int j=1;j<front_size-1;j++){
+            init_dis[sorting_id[i][j]]+=(combine_fit[this_rank[sorting_id[i][j+1]]][i]
+            -combine_fit[this_rank[sorting_id[i][j-1]]][i])/
+            (combine_fit[this_rank[sorting_id[i][front_size-1]]][i]
+            -combine_fit[this_rank[sorting_id[i][0]]][i]);
+        }
+    // cout<<"pass"<<endl;
+    double min_sol_dis;
+    int min_sol_pos;
+    d1 min_sorting_id(obj_num);
+    
+    while(front_size>max_pareto){
+        min_sol_dis=numeric_limits<double>::infinity();
+        min_sol_pos=-1;
+        for(int i=0;i<front_size;i++)
+            if(min_sol_dis>init_dis[i]){
+                
+                min_sol_dis=init_dis[i];
+                min_sol_pos=i;
+            }
+        // cout<<"boom"<<endl;
+        for(int i=0;i<obj_num;i++)
+            for(int j=0;j<front_size;j++)
+                if(sorting_id[i][j]==min_sol_pos)
+                {
+                    if(j!=front_size-1)
+                        if(init_dis[sorting_id[i][j+1]]!=numeric_limits<double>::infinity())
+                            init_dis[sorting_id[i][j+1]]=0.0;
+                    if(j!=0)
+                        if(init_dis[sorting_id[i][j-1]]!=numeric_limits<double>::infinity())  
+                            init_dis[sorting_id[i][j-1]]=0.0;
+                    min_sorting_id[i]=j;
+                    break;
+                }
+        // cout<<"front_size="<<front_size<<endl;
+        // cout<<sorting_id[0][0]<<":init="<<init_dis[sorting_id[0][0]]<<" "<<sorting_id[0][front_size-1]<<":init="<<init_dis[sorting_id[0][front_size-1]]<<endl;
+        // cout<<sorting_id[1][0]<<":init="<<init_dis[sorting_id[1][0]]<<" "<<sorting_id[1][front_size-1]<<":init="<<init_dis[sorting_id[1][front_size-1]]<<endl;
+        // cout<<sorting_id[0][min_sorting_id[0]]<<" "<<sorting_id[1][min_sorting_id[1]]<<endl;
+        // cout<<min_sorting_id[0]<<" "<<min_sorting_id[1]<<endl;
+        for(int i=0;i<obj_num;i++){
+            if(min_sorting_id[i]+1!=front_size-1 && min_sorting_id[i]!=front_size-1 && min_sorting_id[i]!=0){
+                // cout<<i<<" inside1"<<endl;
+                if(init_dis[sorting_id[i][min_sorting_id[i]+1]]!=numeric_limits<double>::infinity()){
+                    init_dis[sorting_id[i][min_sorting_id[i]+1]]+=(combine_fit[this_rank[sorting_id[i][min_sorting_id[i]+2]]][i]
+                    -combine_fit[this_rank[sorting_id[i][min_sorting_id[i]-1]]][i])/
+                    (combine_fit[this_rank[sorting_id[i][front_size-1]]][i]-combine_fit[this_rank[sorting_id[i][0]]][i]);
+                }
+            }
+            if(min_sorting_id[i]-1!=0 && min_sorting_id[i]!=0 && min_sorting_id[i]!=front_size-1){
+                // cout<<i<<" inside2"<<endl;
+                if(init_dis[sorting_id[i][min_sorting_id[i]-1]]!=numeric_limits<double>::infinity()){
+                    init_dis[sorting_id[i][min_sorting_id[i]-1]]+=(combine_fit[this_rank[sorting_id[i][min_sorting_id[i]+1]]][i]
+                    -combine_fit[this_rank[sorting_id[i][min_sorting_id[i]-2]]][i])/
+                    (combine_fit[this_rank[sorting_id[i][front_size-1]]][i]-combine_fit[this_rank[sorting_id[i][0]]][i]);
+                }
+            }
+        }
+        // cout<<"hello"<<endl;
+        // cout<<"front_size = "<<front_size<<endl;
+        // cout<<min_sorting_id[0]<<endl;
+        // cout<<min_sorting_id[1]<<endl;
+        front_size--;
+        for(int i=0;i<obj_num;i++)
+            sorting_id[i].erase(sorting_id[i].begin()+min_sorting_id[i]);
+            
+        for(int i=0;i<obj_num;i++)
+            for(int j=0;j<front_size;j++)
+                if(sorting_id[i][j]>min_sol_pos)
+                    sorting_id[i][j]--;
+        
+        this_rank.erase(this_rank.begin()+min_sol_pos);
+        init_dis.erase(init_dis.begin()+min_sol_pos);
+        // cout<<"next"<<endl;
+        
+    }
+    
+    archive=d3(this_rank.size());
+    for(int i=0;i<this_rank.size();i++)
+        archive[i]=combine_sol[this_rank[i]];
+
+}
+void se::Euclidean_crowding(d1& this_rank){
+    int front_size=this_rank.size();
+    dd1 init_dis(front_size,0.0);
+
+    d2 sorting_id(obj_num,d1(front_size));
+    d2 obj_id(obj_num);
+    //--------各目標均可用--------//
+    // for(int i=0;i<obj_num;i++){
+    //     for(int j=0;j<front_size;j++)
+    //         sorting_id[i][j]=j;
+    //     obj_id[i]=this_rank;
+    //     quick_sort_obj(i,obj_id[i],sorting_id[i],0,front_size-1);
+    // }
+    //---------2目標專用---------//
+    for(int j=0;j<front_size;j++)
+        sorting_id[0][j]=j;
+    obj_id[0]=this_rank;
+    quick_sort_obj(0,obj_id[0],sorting_id[0],0,front_size-1);
+    obj_id[1]=obj_id[0];
+    sorting_id[1]=sorting_id[0];
+    reverse(obj_id[1].begin(),obj_id[1].end());
+    reverse(sorting_id[1].begin(),sorting_id[1].end());
+    //------------------------//
+
+    //用歐基里德距離計算擁擠度
+    init_dis[sorting_id[0][0]]=std::numeric_limits<double>::infinity();
+    init_dis[sorting_id[0][front_size-1]]=std::numeric_limits<double>::infinity();
+
+    for(int i=1;i<front_size-1;i++){
+        init_dis[sorting_id[0][i]]=
+        Euclidean_dis(combine_fit[this_rank[sorting_id[0][i]]],combine_fit[this_rank[sorting_id[0][i-1]]])+
+        Euclidean_dis(combine_fit[this_rank[sorting_id[0][i]]],combine_fit[this_rank[sorting_id[0][i+1]]]);
+    }
+    quick_sort(init_dis,this_rank,0,front_size-1);
+    reverse(this_rank.begin(),this_rank.end());
+}
+void se::Euclidean_archive_d(d1& this_rank){
+    int front_size=this_rank.size();
+    dd1 init_dis(front_size,0.0);
+
+    d2 sorting_id(obj_num,d1(front_size));
+    d2 obj_id(obj_num);
+    //--------各目標均可用--------//
+    // for(int i=0;i<obj_num;i++){
+    //     for(int j=0;j<front_size;j++)
+    //         sorting_id[i][j]=j;
+    //     obj_id[i]=this_rank;
+    //     quick_sort_obj(i,obj_id[i],sorting_id[i],0,front_size-1);
+    // }
+    //---------2目標專用---------//
+    for(int j=0;j<front_size;j++)
+        sorting_id[0][j]=j;
+    obj_id[0]=this_rank;
+    quick_sort_obj(0,obj_id[0],sorting_id[0],0,front_size-1);
+    obj_id[1]=obj_id[0];
+    sorting_id[1]=sorting_id[0];
+    reverse(obj_id[1].begin(),obj_id[1].end());
+    reverse(sorting_id[1].begin(),sorting_id[1].end());
+    //------------------------//
+    //計算擁擠程度
+    init_dis[sorting_id[0][0]]=std::numeric_limits<double>::infinity();
+    init_dis[sorting_id[0][front_size-1]]=std::numeric_limits<double>::infinity();
+
+    for(int i=1;i<front_size-1;i++){
+        init_dis[sorting_id[0][i]]=
+        Euclidean_dis(combine_fit[this_rank[sorting_id[0][i]]],combine_fit[this_rank[sorting_id[0][i-1]]])+
+        Euclidean_dis(combine_fit[this_rank[sorting_id[0][i]]],combine_fit[this_rank[sorting_id[0][i+1]]]);
+    }
+
+    double min_sol_dis;
+    int min_sol_pos;
+    d1 min_sorting_id(obj_num);
+    
+    while(front_size>max_pareto){
+        min_sol_dis=numeric_limits<double>::infinity();
+        min_sol_pos=-1;
+        for(int i=0;i<front_size;i++)
+            if(min_sol_dis>init_dis[i]){
+                // cout<<"in+min"<<endl;
+                min_sol_dis=init_dis[i];
+                min_sol_pos=i;
+            }
+        
+        for(int i=0;i<obj_num;i++)
+            for(int j=0;j<front_size;j++)
+                if(sorting_id[i][j]==min_sol_pos)
+                {
+                    // cout<<i<<":"<<j<<endl;
+                    if(init_dis[sorting_id[i][j+1]]!=numeric_limits<double>::infinity())
+                        init_dis[sorting_id[i][j+1]]=0.0;
+                    if(init_dis[sorting_id[i][j-1]]!=numeric_limits<double>::infinity())  
+                        init_dis[sorting_id[i][j-1]]=0.0;
+                    min_sorting_id[i]=j;
+                    break;
+                }
+        for(int i=0;i<obj_num;i++){
+            
+            if(init_dis[sorting_id[i][min_sorting_id[i]+1]]!=numeric_limits<double>::infinity()){
+                init_dis[sorting_id[i][min_sorting_id[i]+1]]=
+                Euclidean_dis(combine_fit[this_rank[sorting_id[i][min_sorting_id[i]+2]]]
+                ,combine_fit[this_rank[sorting_id[i][min_sorting_id[i]+1]]])+
+                Euclidean_dis(combine_fit[this_rank[sorting_id[i][min_sorting_id[i]+1]]]
+                ,combine_fit[this_rank[sorting_id[i][min_sorting_id[i]-1]]]);
+                
+            }
+            if(init_dis[sorting_id[i][min_sorting_id[i]-1]]!=numeric_limits<double>::infinity()){
+                init_dis[sorting_id[i][min_sorting_id[i]-1]]=
+                Euclidean_dis(combine_fit[this_rank[sorting_id[i][min_sorting_id[i]-1]]]
+                ,combine_fit[this_rank[sorting_id[i][min_sorting_id[i]-2]]])+
+                Euclidean_dis(combine_fit[this_rank[sorting_id[i][min_sorting_id[i]-1]]]
+                ,combine_fit[this_rank[sorting_id[i][min_sorting_id[i]+1]]]);
+            }
+            // cout<<i<<"="<<init_dis[sorting_id[i][min_sorting_id[i]+1]]<<" "<<init_dis[sorting_id[i][min_sorting_id[i]-1]]<<endl;
+        }
+        // cout<<front_size<<endl;
+        // cout<<endl;
+        front_size--;
+        for(int i=0;i<obj_num;i++)
+            sorting_id[i].erase(sorting_id[i].begin()+min_sorting_id[i]);
+        for(int i=0;i<obj_num;i++)
+            for(int j=0;j<front_size;j++)
+                if(sorting_id[i][j]>min_sol_pos)
+                    sorting_id[i][j]--;
+        this_rank.erase(this_rank.begin()+min_sol_pos);
+        init_dis.erase(init_dis.begin()+min_sol_pos);
+        
+    }
+    
+    archive=d3(this_rank.size());
+    for(int i=0;i<this_rank.size();i++)
+        archive[i]=combine_sol[this_rank[i]];
+}
+//計算cdr用
+void se::Euclidean_d_evaluate(d1& this_rank){
+    int front_size=this_rank.size();
+    dd1 init_dis(front_size,0.0);
+    d1 deleted_sol;
+    d2 sorting_id(obj_num,d1(front_size));
+    d2 obj_id(obj_num);
+    //--------各目標均可用--------//
+    // for(int i=0;i<obj_num;i++){
+    //     for(int j=0;j<front_size;j++)
+    //         sorting_id[i][j]=j;
+    //     obj_id[i]=this_rank;
+    //     quick_sort_obj(i,obj_id[i],sorting_id[i],0,front_size-1);
+    // }
+    //---------2目標專用---------//
+    for(int j=0;j<front_size;j++)
+        sorting_id[0][j]=j;
+    obj_id[0]=this_rank;
+    quick_sort_obj(0,obj_id[0],sorting_id[0],0,front_size-1);
+    obj_id[1]=obj_id[0];
+    sorting_id[1]=sorting_id[0];
+    reverse(obj_id[1].begin(),obj_id[1].end());
+    reverse(sorting_id[1].begin(),sorting_id[1].end());
+    //------------------------//
+    //計算擁擠程度
+    init_dis[sorting_id[0][0]]=std::numeric_limits<double>::infinity();
+    init_dis[sorting_id[0][front_size-1]]=std::numeric_limits<double>::infinity();
+
+    for(int i=1;i<front_size-1;i++){
+        init_dis[sorting_id[0][i]]=
+        Euclidean_dis(combine_fit[this_rank[sorting_id[0][i]]],combine_fit[this_rank[sorting_id[0][i-1]]])+
+        Euclidean_dis(combine_fit[this_rank[sorting_id[0][i]]],combine_fit[this_rank[sorting_id[0][i+1]]]);
+    }
+
+    double min_sol_dis;
+    int min_sol_pos;
+    d1 min_sorting_id(obj_num);
+    
+    while(front_size>max_pareto){
+        min_sol_dis=numeric_limits<double>::infinity();
+        min_sol_pos=-1;
+        for(int i=0;i<front_size;i++)
+            if(min_sol_dis>init_dis[i]){
+                
+                min_sol_dis=init_dis[i];
+                min_sol_pos=i;
+            }
+        deleted_sol.push_back(this_rank[min_sol_pos]);
+        for(int i=0;i<obj_num;i++)
+            for(int j=0;j<front_size;j++)
+                if(sorting_id[i][j]==min_sol_pos)
+                {
+                    if(init_dis[sorting_id[i][j+1]]!=numeric_limits<double>::infinity())
+                        init_dis[sorting_id[i][j+1]]=0.0;
+                    if(init_dis[sorting_id[i][j-1]]!=numeric_limits<double>::infinity())  
+                        init_dis[sorting_id[i][j-1]]=0.0;
+                    min_sorting_id[i]=j;
+                    break;
+                }
+        for(int i=0;i<obj_num;i++){
+            
+            if(init_dis[sorting_id[i][min_sorting_id[i]+1]]!=numeric_limits<double>::infinity()){
+                init_dis[sorting_id[i][min_sorting_id[i]+1]]=
+                Euclidean_dis(combine_fit[this_rank[sorting_id[i][min_sorting_id[i]+2]]]
+                ,combine_fit[this_rank[sorting_id[i][min_sorting_id[i]+1]]])+
+                Euclidean_dis(combine_fit[this_rank[sorting_id[i][min_sorting_id[i]+1]]]
+                ,combine_fit[this_rank[sorting_id[i][min_sorting_id[i]-1]]]);
+                
+            }
+            if(init_dis[sorting_id[i][min_sorting_id[i]-1]]!=numeric_limits<double>::infinity()){
+                init_dis[sorting_id[i][min_sorting_id[i]-1]]=
+                Euclidean_dis(combine_fit[this_rank[sorting_id[i][min_sorting_id[i]-1]]]
+                ,combine_fit[this_rank[sorting_id[i][min_sorting_id[i]-2]]])+
+                Euclidean_dis(combine_fit[this_rank[sorting_id[i][min_sorting_id[i]-1]]]
+                ,combine_fit[this_rank[sorting_id[i][min_sorting_id[i]+1]]]);
+            }
+            // cout<<i<<"="<<init_dis[sorting_id[i][min_sorting_id[i]+1]]<<" "<<init_dis[sorting_id[i][min_sorting_id[i]-1]]<<endl;
+        }
+        // cout<<front_size<<endl;
+        // cout<<endl;
+        front_size--;
+        for(int i=0;i<obj_num;i++)
+            sorting_id[i].erase(sorting_id[i].begin()+min_sorting_id[i]);
+        for(int i=0;i<obj_num;i++)
+            for(int j=0;j<front_size;j++)
+                if(sorting_id[i][j]>min_sol_pos)
+                    sorting_id[i][j]--;
+        this_rank.erase(this_rank.begin()+min_sol_pos);
+        init_dis.erase(init_dis.begin()+min_sol_pos);
+        
+    }
+    
+    archive=d3(this_rank.size());
+    for(int i=0;i<this_rank.size();i++)
+        archive[i]=combine_sol[this_rank[i]];
+    
+    int deleted_sol_size=deleted_sol.size();
+    // cout<<deleted_sol_size<<endl;
+   
+    dd1 deleted_init_dis(deleted_sol_size,0.0);
+    for(int i=0;i<deleted_sol_size;i++)
+        for(int j=0;j<front_size;j++)
+            if(combine_fit[deleted_sol[i]][0]<combine_fit[this_rank[sorting_id[0][j]]][0]){
+                deleted_init_dis[i]=
+                Euclidean_dis(combine_fit[this_rank[sorting_id[0][j]]]
+                ,combine_fit[deleted_sol[i]])+
+                Euclidean_dis(combine_fit[this_rank[sorting_id[0][j-1]]]
+                ,combine_fit[deleted_sol[i]]);
+                break;
+            }
+        
+    quick_sort(deleted_init_dis,deleted_sol,0,deleted_sol_size-1);
+    quick_sort(init_dis,this_rank,0,front_size-1);
+    reverse(deleted_sol.begin(),deleted_sol.end());
+    reverse(this_rank.begin(),this_rank.end());
+
+    this_rank.insert(this_rank.end(),deleted_sol.begin(),deleted_sol.end());
+
+}
+//計算cdr用
+void se::crowding_d_evaluate(d1& this_rank){
+    int front_size=this_rank.size();
+    dd1 init_dis(front_size,0.0);
+    d1 deleted_sol;
+    d2 sorting_id(obj_num,d1(front_size));
+    d2 obj_id(obj_num);
+    //--------各目標均可用--------//
+    // for(int i=0;i<obj_num;i++){
+    //     for(int j=0;j<front_size;j++)
+    //         sorting_id[i][j]=j;
+    //     obj_id[i]=this_rank;
+    //     quick_sort_obj(i,obj_id[i],sorting_id[i],0,front_size-1);
+    // }
+    //---------2目標專用---------//
+    for(int j=0;j<front_size;j++)
+        sorting_id[0][j]=j;
+    obj_id[0]=this_rank;
+    quick_sort_obj(0,obj_id[0],sorting_id[0],0,front_size-1);
+    obj_id[1]=obj_id[0];
+    sorting_id[1]=sorting_id[0];
+    reverse(obj_id[1].begin(),obj_id[1].end());
+    reverse(sorting_id[1].begin(),sorting_id[1].end());
+    //------------------------//
+    //計算擁擠程度
+    for (int i=0; i<obj_num; i++)
+        init_dis[sorting_id[i][0]]= std::numeric_limits<double>::infinity();
+    for(int i=0;i<obj_num;i++)
+        for(int j=1;j<front_size-1;j++){
+            init_dis[sorting_id[i][j]]+=(combine_fit[this_rank[sorting_id[i][j+1]]][i]
+            -combine_fit[this_rank[sorting_id[i][j-1]]][i])/
+            (combine_fit[this_rank[sorting_id[i][front_size-1]]][i]-combine_fit[this_rank[sorting_id[i][0]]][i]);
+        }
+
+    double min_sol_dis;
+    int min_sol_pos;
+    d1 min_sorting_id(obj_num);
+    
+    while(front_size>max_pareto){
+        min_sol_dis=numeric_limits<double>::infinity();
+        min_sol_pos=-1;
+        for(int i=0;i<front_size;i++)
+            if(min_sol_dis>init_dis[i]){
+                min_sol_dis=init_dis[i];
+                min_sol_pos=i;
+            }
+        deleted_sol.push_back(this_rank[min_sol_pos]);
+        for(int i=0;i<obj_num;i++)
+            for(int j=0;j<front_size;j++)
+                if(sorting_id[i][j]==min_sol_pos)
+                {
+                    // cout<<i<<":"<<j<<endl;
+                    if(init_dis[sorting_id[i][j+1]]!=numeric_limits<double>::infinity())
+                        init_dis[sorting_id[i][j+1]]=0.0;
+                    if(init_dis[sorting_id[i][j-1]]!=numeric_limits<double>::infinity())  
+                        init_dis[sorting_id[i][j-1]]=0.0;
+                    min_sorting_id[i]=j;
+                    break;
+                }
+                
+        for(int i=0;i<obj_num;i++){
+            
+            if(init_dis[sorting_id[i][min_sorting_id[i]+1]]!=numeric_limits<double>::infinity()){
+                init_dis[sorting_id[i][min_sorting_id[i]+1]]+=(combine_fit[this_rank[sorting_id[i][min_sorting_id[i]+2]]][i]
+                -combine_fit[this_rank[sorting_id[i][min_sorting_id[i]-1]]][i])/
+                (combine_fit[this_rank[sorting_id[i][front_size-1]]][i]-combine_fit[this_rank[sorting_id[i][0]]][i]);
+            }
+            if(init_dis[sorting_id[i][min_sorting_id[i]-1]]!=numeric_limits<double>::infinity()){
+                init_dis[sorting_id[i][min_sorting_id[i]-1]]+=(combine_fit[this_rank[sorting_id[i][min_sorting_id[i]+1]]][i]
+                -combine_fit[this_rank[sorting_id[i][min_sorting_id[i]-2]]][i])/
+                (combine_fit[this_rank[sorting_id[i][front_size-1]]][i]-combine_fit[this_rank[sorting_id[i][0]]][i]);
+            }
+        }
+       
+        front_size--;
+        for(int i=0;i<obj_num;i++)
+            sorting_id[i].erase(sorting_id[i].begin()+min_sorting_id[i]);
+        for(int i=0;i<obj_num;i++)
+            for(int j=0;j<front_size;j++)
+                if(sorting_id[i][j]>min_sol_pos)
+                    sorting_id[i][j]--;
+
+        this_rank.erase(this_rank.begin()+min_sol_pos);
+        init_dis.erase(init_dis.begin()+min_sol_pos);
+        
+    }
+    
+    archive=d3(this_rank.size());
+    for(int i=0;i<this_rank.size();i++)
+        archive[i]=combine_sol[this_rank[i]];
+    
+    int deleted_sol_size=deleted_sol.size();
+    dd1 deleted_init_dis(deleted_sol_size,0.0);
+    for(int i=0;i<deleted_sol_size;i++)
+        for(int k=0;k<obj_num;k++)
+            for(int j=0;j<front_size;j++)
+                if(combine_fit[deleted_sol[i]][k]<combine_fit[this_rank[sorting_id[k][j]]][k]){
+                    deleted_init_dis[i]+=(combine_fit[this_rank[sorting_id[k][j]]][k]
+                                        -combine_fit[this_rank[sorting_id[k][j-1]]][k])/
+                                        (combine_fit[this_rank[sorting_id[k][front_size-1]]][k]
+                                        -combine_fit[this_rank[sorting_id[k][0]]][k]);
+                    break;
+                }
+        
+    quick_sort(deleted_init_dis,deleted_sol,0,deleted_sol_size-1);
+    quick_sort(init_dis,this_rank,0,front_size-1);
+    reverse(deleted_sol.begin(),deleted_sol.end());
+    reverse(this_rank.begin(),this_rank.end());
+
+    this_rank.insert(this_rank.end(),deleted_sol.begin(),deleted_sol.end());
+    
+}
+double se::Euclidean_dis(dd1& sol1,dd1& sol2){
+    double sum=0.0;
+    for(int i=0;i<obj_num;i++)
+        sum+=pow(sol1[i]-sol2[i],2.0);
+    return sqrt(sum);
 }
 void se::print_each_plot(int iter_now,dd2& real_sol){
     dd2 output_iter(real_sol.size());
@@ -824,14 +1339,16 @@ void se::run(){
             ga_mut();
             
             cal_ev();
-            
+
             select_player();
-            
+
             marketing_survey();
+            // cout<<j<<" hello"<<endl;
             // cout<<tmp_iter<<endl;
             // print_each_plot(j,real_sol);
+            
         }
-
+        // cout<<archive.size()<<endl;
     // for(int i=0;i<numIter;i++)
     //     cout<<fixed<<setprecision(3)<<iter_obj_avg[i]/numRuns<<endl;
     
@@ -854,6 +1371,7 @@ void se::run(){
         }
         output_obj.close();
     }
+
 }
 
 void se::marketing_survey(){
@@ -862,6 +1380,8 @@ void se::marketing_survey(){
             tb[i] = 1.0;
 
     archive_delete();
+    // archive_delete_q(rank_0);
+    // Euclidean_archive_d(rank_0);//暫定使用Euclidean
 }
 
 void se::quick_sort(dd1& value,d1& this_rank,int left,int right){

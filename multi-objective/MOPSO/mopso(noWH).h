@@ -7,8 +7,7 @@
 #include <fstream>
 #include <iomanip>
 #include <limits>
-#include "dataset.cpp"
-#include"function_init.cpp"
+#include"../test_problem.h"
 
 using namespace std;
 # define EPS 1.0e-14
@@ -17,7 +16,7 @@ class mopso{
 		typedef vector<double> solution;
         typedef vector<solution> population;
 		mopso(int,int,int,double,int,string);
-		population run();
+		void run();
 	private:
 		void init(population&);
         population fitness(population&);
@@ -56,25 +55,27 @@ private:
     population pbest;
     population pbest_fit;
     vector<vector<int>> wheel_table;
+    string func_name;
+    test_problem func;
 };
 mopso::mopso(int xNumRuns,
 int xNumIter,
 int xPopulationNum,
 double x_ndiv,
 int x_mem,
-string xproblem_func
+string in_func_name
 )
 {
     srand(time(0));
     numRuns=xNumRuns;
 	numIter=xNumIter;
     population_num=xPopulationNum;
-    problem_func=xproblem_func;
-    func_init(problem_func);
-    dimension=idimension;
-    obj_num=iobj_num;	
-    upperbound=ub;
-    lowerbound=lb;
+    func_name=in_func_name;
+    func=test_problem(func_name);
+    dimension=func.idimension;
+    obj_num=func.iobj_num;	
+    upperbound=func.ub;
+    lowerbound=func.lb;
     ndiv=x_ndiv;
     mem=x_mem;
    
@@ -304,7 +305,7 @@ int mopso::select_lead(){
     solution prob(table_size);
     double hypersum=0;
     for(int i=0;i<table_size;i++){
-        prob[i]=10.0/(pow(wheel_table[i][1],3.0));
+        prob[i]=10.0/(pow(wheel_table[i][1],4.0));
         //prob[i]=10.0/wheel_table[i][1];
         hypersum+=prob[i];
     }
@@ -327,7 +328,7 @@ int mopso::select_lead(){
 }
 
 void mopso::update_velocity(population &all_sol,population &vel){
-    double W=0.4,c1=1,c2=4;
+    double W=0.4,c1=1,c2=2;
     int gbest_pos;
     for(int i=0;i<population_num;i++){
         gbest_pos=select_lead();
@@ -347,7 +348,7 @@ void mopso::update_velocity(population &all_sol,population &vel){
 }
 
 
-mopso::population mopso::run(){
+void mopso::run(){
    
     population currentSol(population_num,solution(dimension));
     population vel;
@@ -357,37 +358,70 @@ mopso::population mopso::run(){
         
         vel=population(population_num,solution(dimension,0));
         for(int j=0;j<numIter;j++){
-            update_velocity(currentSol,vel);       
-            update_pbest(currentSol);           
+            update_velocity(currentSol,vel); 
+            
+            update_pbest(currentSol);  
+                   
             update_cube(currentSol);  
+            
         }
+        cout<<hypercube.size()<<endl;
+        hyper_fit=fitness(hypercube);
+        population output_archive(mem);
+        output_archive=hyper_fit;
+        //輸出該RUN的所有解
+        ofstream output_obj;
+        output_obj.open("pareto/"+func_name+"/mopso/"+func_name+"_mopso_"+to_string(i)+".txt");
+        for(int k=0;k<mem;k++){
+            for(int l=0;l<obj_num;l++)
+                output_obj<<output_archive[k][l]<<" ";
+            output_obj<<endl;
+        }
+        output_obj.close();
+    
     }
-    hyper_fit=fitness(hypercube);
-    return hyper_fit;
+    
 }
 
 mopso::population mopso::fitness(population& all_sol) {
-    if(problem_func=="SCH")
-        return SCH(all_sol);
-    else if(problem_func=="FON")
-        return FON(all_sol);
-    else if(problem_func=="POL")
-        return POL(all_sol);
-    else if(problem_func=="KUR")
-        return KUR(all_sol);
-    else if(problem_func=="ZDT1")
-        return ZDT1(all_sol);
-    else if(problem_func=="ZDT2")
-        return ZDT2(all_sol);
-    else if(problem_func=="ZDT3")
-        return ZDT3(all_sol);
-    else if(problem_func=="ZDT4")
-        return ZDT4(all_sol);
-    else if(problem_func=="ZDT6")
-        return ZDT6(all_sol);
-    else if(problem_func=="UF1")
-        return UF1(all_sol);
-
+    if(func_name=="SCH")
+        return func.SCH(all_sol);
+    else if(func_name=="FON")
+        return func.FON(all_sol);
+    else if(func_name=="POL")
+        return func.POL(all_sol);
+    else if(func_name=="KUR")
+        return func.KUR(all_sol);
+    else if(func_name=="ZDT1")
+        return func.ZDT1(all_sol);
+    else if(func_name=="ZDT2")
+        return func.ZDT2(all_sol);
+    else if(func_name=="ZDT3")
+        return func.ZDT3(all_sol);
+    else if(func_name=="ZDT4")
+        return func.ZDT4(all_sol);
+    else if(func_name=="ZDT6")
+        return func.ZDT6(all_sol);
+    else if(func_name=="UF1")
+        return func.UF1(all_sol);
+    else if(func_name=="UF2")
+        return func.UF2(all_sol);
+    else if(func_name=="UF3")
+        return func.UF3(all_sol);
+    else if(func_name=="UF4")
+        return func.UF4(all_sol);
+    else if(func_name=="UF5")
+        return func.UF5(all_sol);
+    else if(func_name=="UF6")
+        return func.UF6(all_sol);
+    else if(func_name=="UF7")
+        return func.UF7(all_sol);
+    else if(func_name=="UF8")
+        return func.UF8(all_sol);
+    else if(func_name=="UF9")
+        return func.UF9(all_sol);
+    else if(func_name=="UF10")
+        return func.UF10(all_sol);
 }
 
 #endif

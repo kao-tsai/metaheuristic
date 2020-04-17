@@ -22,11 +22,11 @@ gnuplot -c gnuplot/test.gp gnuplot/NSGA_FON.png FON 0 1 0 1 pareto/FON/bnsga2/FO
 ./search bnsga2 $run 250 100 0.9 0.03 SCH
 gnuplot -c gnuplot/test.gp gnuplot/NSGA_SCH.png SCH 0 4 0 4 pareto/SCH/bnsga2/SCH_bnsga2_0.txt opt/SCH_opt.txt
 
-# ./search bnsga2 $run 500 100 0.9 0.033333 KUR
-# gnuplot -c gnuplot/test.gp gnuplot/NSGA_KUR.png KUR -20 -14 -12 2 pareto/KUR/bnsga2/KUR_bnsga2_0.txt opt/KUR_opt.txt
+./search bnsga2 $run 250 100 0.9 0.033333 KUR
+gnuplot -c gnuplot/test.gp gnuplot/NSGA_KUR.png KUR -20 -14 -12 2 pareto/KUR/bnsga2/KUR_bnsga2_0.txt opt/KUR_opt.txt
 
-# ./search bnsga2 $run 250 100 0.9 0.033333 POL
-# gnuplot -c gnuplot/test.gp gnuplot/NSGA_POL.png POL 0 6 0 30 pareto/POL/bnsga2/POL_bnsga2_0.txt opt/POL_opt.txt
+./search bnsga2 $run 250 100 0.9 0.033333 POL
+gnuplot -c gnuplot/test.gp gnuplot/NSGA_POL.png POL 0 6 0 30 pareto/POL/bnsga2/POL_bnsga2_0.txt opt/POL_opt.txt
 
  ./search bnsga2 $run 250 100 0.9 0.001 ZDT1
  gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT1.png ZDT1 0 1 0 1 pareto/ZDT1/bnsga2/ZDT1_bnsga2_0.txt opt/ZDT1_opt.txt
@@ -43,25 +43,25 @@ gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT4.png ZDT4 0 1 0 5 pareto/ZDT4/bnsga2
 ./search bnsga2 $run 250 100 0.9 0.001 ZDT6
 gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT6.png ZDT6 0.2 1 0 1 pareto/ZDT6/bnsga2/ZDT6_bnsga2_0.txt opt/ZDT6_opt.txt
 
-# ./search bnsga2 $run 2000 100 0.9 0.01 UF1
+# ./search bnsga2 $run 250 100 0.9 0.01 UF1
 # gnuplot -c gnuplot/test.gp gnuplot/NSGA_UF1.png UF1 0 1.2 0 1.2 pareto/UF1/bnsga2/UF1_bnsga2_0.txt opt/UF1_opt.txt
 
-# ./search bnsga2 $run 2000 100 0.9 0.01 UF2
+# ./search bnsga2 $run 250 100 0.9 0.01 UF2
 # gnuplot -c gnuplot/test.gp gnuplot/NSGA_UF2.png UF2 0 1.2 0 1.2 pareto/UF2/bnsga2/UF2_bnsga2_0.txt opt/UF2_opt.txt
 
-# ./search bnsga2 $run 2000 100 0.9 0.01 UF3
+# ./search bnsga2 $run 250 100 0.9 0.01 UF3
 # gnuplot -c gnuplot/test.gp gnuplot/NSGA_UF3.png UF3 0 1.2 0 1.2 pareto/UF3/bnsga2/UF3_bnsga2_0.txt opt/UF3_opt.txt
 
-# ./search bnsga2 $run 2000 100 0.9 0.01 UF4
+# ./search bnsga2 $run 250 100 0.9 0.01 UF4
 # gnuplot -c gnuplot/test.gp gnuplot/NSGA_UF4.png UF4 0 1.2 0 1.2 pareto/UF4/bnsga2/UF4_bnsga2_0.txt opt/UF4_opt.txt
 
-# ./search bnsga2 $run 2000 100 0.9 0.01 UF5
+# ./search bnsga2 $run 250 100 0.9 0.01 UF5
 # gnuplot -c gnuplot/test.gp gnuplot/NSGA_UF5.png UF5 0 1.2 0 1.2 pareto/UF5/bnsga2/UF5_bnsga2_0.txt opt/UF5_opt.txt
 
-# ./search bnsga2 $run 2000 100 0.9 0.01 UF6
+# ./search bnsga2 $run 250 100 0.9 0.01 UF6
 # gnuplot -c gnuplot/test.gp gnuplot/NSGA_UF6.png UF6 0 1.2 0 1.2 pareto/UF6/bnsga2/UF6_bnsga2_0.txt opt/UF6_opt.txt
 
-# ./search bnsga2 $run 2000 100 0.9 0.01 UF7
+# ./search bnsga2 $run 250 100 0.9 0.01 UF7
 # gnuplot -c gnuplot/test.gp gnuplot/NSGA_UF7.png UF7 0 1.2 0 1.2 pareto/UF7/bnsga2/UF7_bnsga2_0.txt opt/UF7_opt.txt
 
 # ./search bnsga2 $run 500 100 0.9 0.01 UF8
