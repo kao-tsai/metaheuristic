@@ -28,7 +28,7 @@ class sede{
 		void init();
         void ga_crossover();
         void de_mut();
-        void ga_mut();
+        void adaptive_F_CR();
         void arrange();
         void cal_ev();
         void choose_sample(int);
@@ -50,7 +50,7 @@ class sede{
         void Euclidean_archive_d(d1&);
         void Euclidean_d_evaluate(d1&);
         void print_each_plot(int,dd2&);
-
+        void combine_region();
 private:
 	int numRuns;
 	int numIter;
@@ -91,6 +91,8 @@ private:
     dd2 sample_cdr_fit;//參考Crowding Distance和Rank合併的Fitness(用來計算期望值公式)
     dd3 sampleV_cdr_fit;//參考Crowding Distance和Rank合併的Fitness(用來計算期望值公式)(Searcher,Region,CDR)
     d1  region_selected_by_s;
+    int origin_region_num;
+    int origin_sample_num;
     int full_sample_num;
     int max_pareto;
     int obj_num;
@@ -103,11 +105,11 @@ private:
     double crossover_pro;
     double mutation_pro;
     double tatb_pressure;
-
     double dominate_pressure;
     double crowd_p;
     double crowd_p_max;
-    
+    dd1 S_cr;
+    dd1 S_F;
     int tmp_iter;
     string func_name;
     test_problem func;
@@ -130,10 +132,11 @@ double in_mutation_pro
 
     numRuns=xNumRuns;
 	numIter=xNumIter;
-    
+    origin_region_num=xRegion;
     region_num=xRegion;
     searcher_num=in_searcher_num;
     sample_num=in_sample_num;
+    origin_sample_num=in_sample_num;
     tour_size=in_tournament_size;
     func_name=in_func_name;
     func=test_problem(func_name);
@@ -155,13 +158,12 @@ double in_mutation_pro
 
 //修改
 void sede::init(){
-
+    region_num=origin_region_num;
+    sample_num=origin_sample_num;
     tb.assign(region_num,0.0);
     ta.assign(region_num,1.0);
     searcher_belong.assign(searcher_num,0);
-    
     searcher.assign(searcher_num,dd1(dim,0.0));
-    
     sample.assign(region_num,dd2(sample_num,dd1(dim,0.0)));
     sampleV.assign(searcher_num,dd3(region_num,dd2(sample_num,dd1(dim,0.0))));
     sample_cdr_fit.assign(region_num,dd1(sample_num,0.0));
@@ -169,6 +171,8 @@ void sede::init(){
     region_best_fit.assign(region_num,0);
     combine_region_id.assign(searcher_num+sample_num*region_num,-1);
     region_selected_by_s.assign(searcher_num,-1);
+    
+    
     //擴充upperbound和lowerbound
     // for(int i=0;i<dim;i++){
     //     upperbound[i]+=upperbound[i]*0.5;
@@ -320,11 +324,9 @@ void sede::arrange(){
     combine_fit=fitness(combine_sol);
 
     //做crowding_distance
-    for(int i=0;i<rank.size();i++){
-        if(rank[i].size()>2){
+    for(int i=0;i<rank.size();i++)
+        if(rank[i].size()>2)
             crowding_dis_assign(rank[i]);
-        }
-    }
     
     //計算所有解的CDR
     double giving_level=(double)archive_size;
@@ -356,12 +358,17 @@ void sede::arrange(){
 
 void sede::de_mut(){
     double rnd;
-    double F=0.9;
+    double F=0.5;
     int num_player=sample_num*0.5;
-    for (int i = 0; i < searcher_num; i++)
+
+    // if(tmp_iter>numIter*0.8)
+    //     F=0.2;
+    
+    for (int i = 0; i < searcher_num; i++){
         for (int j = 0; j < region_num; j++){
             
             //Do the current_to_best => High Convergence
+            /*
             if(j==region_selected_by_s[i]){
                 for (int k = 0; k < sample_num; k++){
                     //choose gbest1 and gbest2 with tournament selection
@@ -414,7 +421,60 @@ void sede::de_mut(){
                     // cout<<endl;
                 }
             }
+            */
+            if(j==region_selected_by_s[i]){
+
+                for (int k = 0; k < sample_num; k++){
+                    //choose gbest1 and gbest2 with tournament selection
+                    // int gbest1=rand()%sample_num;
+                    int gbest2=rand()%sample_num;
+                    int rand_s=rand()%sample_num;
+                    while (searcher[i] == sample[j][gbest2])
+                        gbest2 = rand()%sample_num;
+                    // touranment selection
+                    for (int l = 0; l < num_player - 1; l++)
+                    {  
+                        int r = rand()%sample_num;
+                        if (sample_cdr_fit[j][r] < sample_cdr_fit[j][gbest2] && sample[j][r] != searcher[i])
+                            gbest2 = r;
+                    }
+                    
+                    while (rand_s == gbest2 || sample[j][rand_s] == searcher[i])
+                        rand_s = rand()%sample_num;
+                    int d_rand=rand()%dim;
+                    for(int l=0;l<dim;l++){
+                        rnd=(double)rand()/RAND_MAX;
+                        if(rnd<crossover_pro||d_rand==l){
+                            sampleV[i][j][k][l]=sample[j][k][l]+F*(searcher[i][l]-sample[j][k][l])
+                                                +F*(sample[j][gbest2][l]-sample[j][rand_s][l]);
+                            // cout<<sampleV[i][j][k][l]<<" ";
+                            //Keep the solution in the bound
+                            if(l<clip_bit_num){
+                                if(sampleV[i][j][k][l]<region_bound[j][0][l])
+                                    sampleV[i][j][k][l]=(region_bound[j][0][l]+searcher[i][l])/2.0;
+                                else if(sampleV[i][j][k][l]>region_bound[j][1][l])
+                                    sampleV[i][j][k][l]=(region_bound[j][1][l]+searcher[i][l])/2.0;
+                            }
+                            else{
+                                if(sampleV[i][j][k][l]<lowerbound[l])
+                                    sampleV[i][j][k][l]=(lowerbound[l]+searcher[i][l])/2.0;
+                                else if(sampleV[i][j][k][l]>upperbound[l])
+                                    sampleV[i][j][k][l]=(upperbound[l]+searcher[i][l])/2.0;
+                            }  
+                                
+                        }
+                        else
+                        {
+                            sampleV[i][j][k][l]=sample[j][k][l];
+                            // cout<<sampleV[i][j][k][l]<<" ";
+                        }
+                    }
+                    // cout<<endl;
+                }
+            }
+
             //Do the random_to_best => High Diversity
+            /*
             else{
                 for (int k = 0; k < sample_num; k++){
                     //choose gbest1 and gbest2 with tournament selection
@@ -468,8 +528,70 @@ void sede::de_mut(){
                     }
                    
                 }
+            }*/
+            
+            else{
+                for (int k = 0; k < sample_num; k++){
+                    //choose gbest1 and gbest2 with tournament selection
+                    // int gbest1=rand()%sample_num;
+                    int gbest2=rand()%sample_num;
+                    int rand_s1=rand()%sample_num;
+                    int rand_s2=rand()%sample_num;
+                    while (searcher[i] == sample[j][gbest2])
+                        gbest2 = rand()%sample_num;
+                    // touranment selection
+                    for (int l = 0; l < num_player - 1; l++)
+                    {
+                        int r = rand()%sample_num;
+                        // if (sample_cdr_fit[j][r] < sample_cdr_fit[j][gbest1] && r != rand_s1)
+                        //     gbest1 = r;
+                        if (sample_cdr_fit[j][r] < sample_cdr_fit[j][gbest2] && r != rand_s1 && searcher[i]!=sample[j][r])
+                            gbest2 = r;
+                    }
+                    while (rand_s2 == gbest2 || rand_s2 == rand_s1)
+                        rand_s2 = rand()%sample_num;
+
+                    //choose gbest1 and gbest2 with best solution and second best solution respectively
+                    // int gbest1;
+                    // int gbest2;
+                    // int rand_s1;
+                    // int rand_s2;
+                    
+                    int d_rand=rand()%dim;
+                    for(int l=0;l<dim;l++){
+                        rnd=(double)rand()/RAND_MAX;
+                        if(rnd<crossover_pro || d_rand==l){
+                            sampleV[i][j][k][l]=sample[j][rand_s1][l]+F*(searcher[i][l]-sample[j][rand_s1][l])
+                                                +F*(sample[j][gbest2][l]-sample[j][rand_s2][l]);
+                            //Keep the solution in the bound
+                            if(l<clip_bit_num){
+                                if(sampleV[i][j][k][l]<region_bound[j][0][l]){
+                                    // sampleV[i][j][k][l]=(region_bound[j][0][l]+searcher[i][l])/2.0;
+                                    sampleV[i][j][k][l]=(region_bound[j][0][l]+sample[j][k][l])/2.0;
+                                }
+                                else if(sampleV[i][j][k][l]>region_bound[j][1][l]){
+                                    // sampleV[i][j][k][l]=(region_bound[j][1][l]+searcher[i][l])/2.0;
+                                    sampleV[i][j][k][l]=(region_bound[j][1][l]+sample[j][k][l])/2.0;
+                                }
+                            }
+                            else{
+                                if(sampleV[i][j][k][l]<lowerbound[l])
+                                    sampleV[i][j][k][l]=(lowerbound[l]+searcher[i][l])/2.0;
+                                else if(sampleV[i][j][k][l]>upperbound[l])
+                                    sampleV[i][j][k][l]=(upperbound[l]+searcher[i][l])/2.0;
+                            }  
+                        }
+                        else{
+                            sampleV[i][j][k][l]=sample[j][k][l];
+                        }
+                    }
+                   
+                }
             }
         }
+        // cout<<"hello"<<endl;
+    }
+        
 }
 //考慮三種計算CDR的方法
 //1.將所有sample和sampleV加入archive並計算crowding_distance
@@ -490,9 +612,10 @@ void sede::cal_cdr_fit(){
             for(int k=0;k<archive_size;k++)
                 if(combine_sol[k]==sample[i][j]){
                     store_sample_pos.push_back(k);
+                    combine_region_id[k]=i;
                     flag=false;
                     break;
-                } 
+                }
             if(flag){
                 combine_sol.push_back(sample[i][j]);
                 sample_end++;
@@ -533,7 +656,6 @@ void sede::cal_cdr_fit(){
                 // combine_sol.push_back(sampleV[j][i][2*k+1]);
                 // combine_region_id[sampleV_start+1]=i;
                 // combine_region_id.push_back(i);
-              
             }
     sampleV_start=sample_end+1;
     // cout<<"combine_sol_size2:"<<combine_sol.size()<<endl;
@@ -674,6 +796,51 @@ void sede::cal_cdr_fit(){
                 sampleV_cdr_fit[j][i][k]=combine_cdr_fit[count];
                 count++;
             }
+    // if(tmp_iter==4998){
+    //     cout<<combine_fit[rank[0][3]][0]<<" "<<combine_fit[rank[0][3]][1]<<endl;
+    // }
+}
+void sede::adaptive_F_CR(){
+
+}
+void sede::combine_region(){
+    clip_bit_num--;
+    region_num/=2;
+    divide_region();
+    region_num*=2;
+    // sample_num*=2;
+    dd3 new_sample(region_num/2,dd2(sample_num*2,dd1(dim,0.0)));
+    dd2 new_sample_fit(region_num/2,dd1(sample_num*2));
+    for(int i=0;i<region_num;i++)
+        for(int j=0;j<sample_num;j++){
+            new_sample[i/2][j+(i%2)*sample_num]=sample[i][j];
+            new_sample_fit[i/2][j+(i%2)*sample_num]=sample_cdr_fit[i][j];
+        }
+    dd4 new_sampleV(searcher_num,dd3(region_num/2,dd2(sample_num*2,dd1(dim,0.0))));
+    dd3 new_sampleV_fit(searcher_num,dd2(region_num/2,dd1(sample_num*2)));
+    for(int i=0;i<searcher_num;i++)
+        for(int j=0;j<region_num;j++){
+            for(int k=0;k<sample_num;k++){
+                new_sampleV[i][j/2][k+(j%2)*sample_num]=sampleV[i][j][k];
+                new_sampleV_fit[i][j/2][k+(j%2)*sample_num]=sampleV_cdr_fit[i][j][k];
+            }
+        }
+    //searcher_select_region
+    for(int i=0;i<searcher_num;i++)
+        region_selected_by_s[i]=region_selected_by_s[i]/2;
+    //id
+    for(int i=0;i<combine_region_id.size();i++)
+        combine_region_id[i]=combine_region_id[i]/2;
+    //ta and tb init
+    tb.assign(region_num,0.0);
+    ta.assign(region_num,1.0);
+    //sample and sampleV init
+    sample=new_sample;
+    sample_cdr_fit=new_sample_fit;
+    sampleV=new_sampleV;
+    sampleV_cdr_fit=new_sampleV_fit;
+    sample_num*=2;
+    region_num/=2;
 }
 //--------------------------------------------------------------------//(試試是否正確)
 void sede::crowding_dis_assign(d1& this_rank){
@@ -685,23 +852,23 @@ void sede::crowding_dis_assign(d1& this_rank){
     d2 obj_id(obj_num);
     //--------各目標均可用--------//
     
-    // for(int i=0;i<obj_num;i++){
-    //     for(int j=0;j<front_size;j++)
-    //         sorting_id[i][j]=j;
-    //     obj_id[i]=this_rank;
-    //     quick_sort_obj(i,obj_id[i],sorting_id[i],0,front_size-1);
-    // }
+    for(int i=0;i<obj_num;i++){
+        for(int j=0;j<front_size;j++)
+            sorting_id[i][j]=j;
+        obj_id[i]=this_rank;
+        quick_sort_obj(i,obj_id[i],sorting_id[i],0,front_size-1);
+    }
     
     //---------2目標專用---------//
     
-    for(int j=0;j<front_size;j++)
-        sorting_id[0][j]=j;
-    obj_id[0]=this_rank;
-    quick_sort_obj(0,obj_id[0],sorting_id[0],0,front_size-1);
-    obj_id[1]=obj_id[0];
-    sorting_id[1]=sorting_id[0];
-    reverse(obj_id[1].begin(),obj_id[1].end());
-    reverse(sorting_id[1].begin(),sorting_id[1].end());
+    // for(int j=0;j<front_size;j++)
+    //     sorting_id[0][j]=j;
+    // obj_id[0]=this_rank;
+    // quick_sort_obj(0,obj_id[0],sorting_id[0],0,front_size-1);
+    // obj_id[1]=obj_id[0];
+    // sorting_id[1]=sorting_id[0];
+    // reverse(obj_id[1].begin(),obj_id[1].end());
+    // reverse(sorting_id[1].begin(),sorting_id[1].end());
     
     //------------------------//
 
@@ -842,17 +1009,24 @@ void sede::select_player(){
         tb[i]++;
 
     for (int i = 0; i < searcher_num; i++) {
+        
 
         int first_select = rand() % region_num;
         double first_ev = EV[i][first_select];
-        
-        for(int j=0;j<tour_size;j++){
-            int second_select= rand() % region_num;
-            if (EV[i][second_select] >  first_select) {
-                first_select = second_select;
-                first_ev = EV[i][first_select];
+        // if(tmp_iter<numIter*0.5)
+            for(int j=0;j<tour_size;j++){
+                int second_select= rand() % region_num;
+                if (EV[i][second_select] >  first_select) {
+                    first_select = second_select;
+                    first_ev = EV[i][first_select];
+                }
             }
-        }
+        // else{
+        //     first_select=0;
+        //     for(int j=1;j<region_num;j++)
+        //         if(EV[i][j]>EV[i][first_select])
+        //             first_select=j;
+        // }
        
         //決定每個Searcher，有兩種作法
         //1.選取最好------->(1)選前幾好的(X)，(2)一律選最好的(V)
@@ -1444,17 +1618,20 @@ void sede::print_each_plot(int iter_now,dd2& real_sol){
     
 }
 void sede::run(){
-    
-
+    int combine_time=numIter/region_num;
+    int time_count=combine_time;
+    default_random_engine generator;
+    normal_distribution<double> distribution(5.0,2.0);
     for(int i=0;i<numRuns;i++){
         
         init();
-        
+        // combine_time=numIter/region_num;
+        // time_count=combine_time;
         arrange();
         
         for(int j=0;j<numIter;j++){
             tmp_iter=j;
-
+            
             de_mut();
             
             cal_ev();
@@ -1466,6 +1643,13 @@ void sede::run(){
             // cout<<j<<" hello"<<endl;
             // cout<<tmp_iter<<endl;
             // print_each_plot(j,real_sol);
+
+            // if(j>time_count && region_num!=1){
+                
+            //     combine_region();
+            //     time_count+=combine_time;
+            //     // cout<<"combine complete"<<endl;
+            // }
             
         }
         // cout<<archive.size()<<endl;
@@ -1487,6 +1671,7 @@ void sede::run(){
           for(int k=0;k<max_pareto;k++){
             for(int l=0;l<obj_num;l++)
                 output_obj<<output_archive[k][l]<<" ";
+            // fixed<<setprecision(20)<<
             output_obj<<endl;
         }
         output_obj.close();

@@ -30,41 +30,41 @@ pop_num=500
 # ./search sede $run 5000 100 4 5 10 2 POL 0.2 0.033333
 # gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_POL.png POL 0 6 0 30 pareto/POL/sede/POL_sede_0.txt opt/POL_opt.txt
 
-./search sede $run 5000 100 4 5 10 2 ZDT1 0.2 0.001
-gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_ZDT1.png ZDT1 0 1 0 1 pareto/ZDT1/sede/ZDT1_sede_0.txt opt/ZDT1_opt.txt
+# ./search sede $run 150 100 4 5 10 2 ZDT1 0.2 0.001
+# gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_ZDT1.png ZDT1 0 1 0 1 pareto/ZDT1/sede/ZDT1_sede_0.txt opt/ZDT1_opt.txt
 
-./search sede $run 5000 100 4 5 10 2 ZDT2 0.2 0.001
-gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_ZDT2.png ZDT2 0 1 0 1 pareto/ZDT2/sede/ZDT2_sede_0.txt opt/ZDT2_opt.txt
+# ./search sede $run 150 100 4 5 10 2 ZDT2 0.2 0.001
+# gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_ZDT2.png ZDT2 0 1 0 1 pareto/ZDT2/sede/ZDT2_sede_0.txt opt/ZDT2_opt.txt
 
-./search sede $run 5000 100 4 5 10 2 ZDT3 0.2 0.01
-gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_ZDT3.png ZDT3 0 1 -1 1 pareto/ZDT3/sede/ZDT3_sede_0.txt opt/ZDT3_opt.txt
+# ./search sede $run 150 100 4 5 10 2 ZDT3 0.2 0.01
+# gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_ZDT3.png ZDT3 0 1 -1 1 pareto/ZDT3/sede/ZDT3_sede_0.txt opt/ZDT3_opt.txt
 
-./search sede $run 5000 100 4 5 10 2 ZDT4 0.2 0.01
-gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_ZDT4.png ZDT4 0 1 0 5 pareto/ZDT4/sede/ZDT4_sede_0.txt opt/ZDT4_opt.txt
+# ./search sede $run 150 100 4 5 10 2 ZDT4 0.1 0.01
+# gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_ZDT4.png ZDT4 0 1 0 1 pareto/ZDT4/sede/ZDT4_sede_0.txt opt/ZDT4_opt.txt
 
-./search sede $run 5000 100 4 5 10 2 ZDT6 0.2 0.0005
-gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_ZDT6.png ZDT6 0.2 1 0 1 pareto/ZDT6/sede/ZDT6_sede_0.txt opt/ZDT6_opt.txt
+# ./search sede $run 300 100 2 5 10 2 ZDT6 0.2 0.0005
+# gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_ZDT6.png ZDT6 0.2 1 0 1 pareto/ZDT6/sede/ZDT6_sede_0.txt opt/ZDT6_opt.txt
 
-./search sede $run 5000 100 4 5 10 2 UF1 0.2 0.01
-gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_UF1.png UF1 0 1.2 0 1.2 pareto/UF1/sede/UF1_sede_0.txt opt/UF1_opt.txt
+# ./search sede $run 5000 100 4 5 10 2 UF1 0.2 0.01
+# gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_UF1.png UF1 0 1.2 0 1.2 pareto/UF1/sede/UF1_sede_0.txt opt/UF1_opt.txt
 
-./search sede $run 5000 100 4 5 10 2 UF2 0.2 0.01
-gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_UF2.png UF2 0 1.2 0 1.2 pareto/UF2/sede/UF2_sede_0.txt opt/UF2_opt.txt
+# ./search sede $run 5000 100 4 5 10 2 UF2 0.2 0.01
+# gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_UF2.png UF2 0 1.2 0 1.2 pareto/UF2/sede/UF2_sede_0.txt opt/UF2_opt.txt
 
-./search sede $run 5000 100 4 5 10 2 UF3 0.2 0.01
-gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_UF3.png UF3 0 1.2 0 1.2 pareto/UF3/sede/UF3_sede_0.txt opt/UF3_opt.txt
+# ./search sede $run 5000 100 4 5 10 2 UF3 0.2 0.01
+# gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_UF3.png UF3 0 1.2 0 1.2 pareto/UF3/sede/UF3_sede_0.txt opt/UF3_opt.txt
 
-./search sede $run 5000 100 4 5 10 2 UF4 0.2 0.01
-gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_UF4.png UF4 0 1.2 0 1.2 pareto/UF4/sede/UF4_sede_0.txt opt/UF4_opt.txt
+# ./search sede $run 5000 100 4 5 10 2 UF4 0.2 0.01
+# gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_UF4.png UF4 0 1.2 0 1.2 pareto/UF4/sede/UF4_sede_0.txt opt/UF4_opt.txt
 
-./search sede $run 5000 100 4 5 10 2 UF5 0.2 0.01
-gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_UF5.png UF5 0 1.2 0 1.2 pareto/UF5/sede/UF5_sede_0.txt opt/UF5_opt.txt
+# ./search sede $run 5000 100 4 5 10 2 UF5 0.2 0.01
+# gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_UF5.png UF5 0 1.2 0 1.2 pareto/UF5/sede/UF5_sede_0.txt opt/UF5_opt.txt
 
-./search sede $run 5000 100 4 5 10 2 UF6 0.2 0.01
-gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_UF6.png UF6 0 1.2 0 1.2 pareto/UF6/sede/UF6_sede_0.txt opt/UF6_opt.txt
+# ./search sede $run 5000 100 4 5 10 2 UF6 0.2 0.01
+# gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_UF6.png UF6 0 1.2 0 1.2 pareto/UF6/sede/UF6_sede_0.txt opt/UF6_opt.txt
 
-./search sede $run 5000 100 4 5 10 2 UF7 0.2 0.01
-gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_UF7.png UF7 0 1.2 0 1.2 pareto/UF7/sede/UF7_sede_0.txt opt/UF7_opt.txt
+# ./search sede $run 5000 100 4 5 10 2 UF7 0.2 0.01
+# gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_UF7.png UF7 0 1.2 0 1.2 pareto/UF7/sede/UF7_sede_0.txt opt/UF7_opt.txt
 
 # ./search sede $run 500 100 4 4 6 2 UF8 0.2 0.001
 # gnuplot -c gnuplot_sede/test.gp gnuplot_sede/SEDE_UF8.png UF8 0 1.2 0 1.2 pareto/UF8/sede/UF8_sede_0.txt opt/UF8_opt.txt

@@ -10,10 +10,11 @@
 #include <sstream>
 #include <limits>
 #include <math.h>
-#include<iomanip>
-#include<algorithm>
-#include<functional>
+#include <iomanip>
+#include <algorithm>
+#include <functional>
 #include <random>
+#include "../test_problem.h"
 
 using namespace std;
 #define pi 3.141592653;
@@ -76,7 +77,7 @@ double hoo::frand(){
     double f = (double)rand()/ RAND_MAX;
     return lowerbound + f * (upperbound - lowerbound);
 }
-/*
+
 double hoo::evaluation(solution& sol){
     double sum_of_sq=0.0;
     double sum_of_cos=0.0;
@@ -88,16 +89,16 @@ double hoo::evaluation(solution& sol){
     
     return (-20)*exp((-0.2)*sqrt((1.0/dim)*sum_of_sq))-exp((1.0/dim)*sum_of_cos)+exp(1)+20;
 }
-*/
 
-double hoo::evaluation(solution& sol){
-    double sum=0.0;
-    for(int i=0;i<dim-1;i++)
-        sum+=100.0*pow(sol[i+1]-pow(sol[i],2.0),2.0)+pow(sol[i]-1,2.0);
-    evaluate_num++;
-    gnu_eva[evaluate_num]+=rabbit_obj_val;
-    return sum;
-}
+
+// double hoo::evaluation(solution& sol){
+//     double sum=0.0;
+//     for(int i=0;i<dim-1;i++)
+//         sum+=100.0*pow(sol[i+1]-pow(sol[i],2.0),2.0)+pow(sol[i]-1,2.0);
+//     evaluate_num++;
+//     gnu_eva[evaluate_num]+=rabbit_obj_val;
+//     return sum;
+// }
 
 void hoo::update_location(population &hawks,double E1){
     double E0,escaping_energy,q;
@@ -174,8 +175,10 @@ void hoo::update_location(population &hawks,double E1){
     }
 }
 hoo::solution hoo::levy_flight(){
-    default_random_engine gen;
-    normal_distribution<double> randn(0.0,1.0);
+    random_device rd;
+    default_random_engine gen=default_random_engine(rd());
+    uniform_real_distribution<double> randn(0.0,1.0);
+    // normal_distribution<double> randn(0.0,1.0);
     double beta=1.5;
     double sigma=(gamma(1+beta)*sin((beta/2.0)*M_PI)/(gamma((1+beta)/2)*beta*pow((beta-1)/2,2)));
     sigma=pow(sigma,(1/beta));

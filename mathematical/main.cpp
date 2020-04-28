@@ -4,6 +4,10 @@
 #include<string.h>
 #include"HHO/HHO.h"
 #include"SE/SE.h"
+#include"MFO/mfo.h"
+#include"PSO/pso.h"
+#include"GA/ga.h"
+#include"TLBO/tlbo.h"
 #include<algorithm>
 #include<functional>
 using namespace std;
@@ -46,7 +50,49 @@ int main(int argc,char **argv)
         cout<<"Loop time:"<<duration<<endl;
         */
     }
-     if(!strcmp(argv[1],"se"))
+    if(!strcmp(argv[1],"tlbo"))
+    {
+
+        cout<<"Number of population:"<<argv[4]<<endl;
+        tlbo search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),argv[6]);
+        tlbo::solution sol=search.run();
+        
+        for(int j=0;j<sol.size();j++)
+            cout<<sol[j]<<" ";
+        cout<<endl;
+       
+    }
+    if(!strcmp(argv[1],"mfo"))
+    {
+        cout<<"Number of population:"<<argv[4]<<endl;
+        mfo search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),argv[6]);
+        mfo::solution sol=search.run();
+        
+        for(int j=0;j<sol.size();j++)
+            cout<<sol[j]<<" ";
+        cout<<endl;
+    }
+    if(!strcmp(argv[1],"pso"))
+    {
+        cout<<"Number of population:"<<argv[4]<<endl;
+        pso search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),argv[6]);
+        pso::solution sol=search.run();
+        
+        for(int j=0;j<sol.size();j++)
+            cout<<sol[j]<<" ";
+        cout<<endl;
+    }
+    if(!strcmp(argv[1],"ga"))
+    {
+        cout<<"Number of population:"<<argv[4]<<endl;
+        ga search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),atof(argv[6]),atof(argv[7]),argv[8]);
+        ga::dd1 sol=search.run();
+        
+        for(int j=0;j<sol.size();j++)
+            cout<<sol[j]<<" ";
+        cout<<endl;
+    }
+    if(!strcmp(argv[1],"se"))
     {
         cout<<"Number of dimension:"<<argv[4]<<endl;
         cout<<"Number of regions:"<<argv[5]<<endl;

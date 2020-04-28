@@ -25,7 +25,7 @@ int main(int argc,char **argv)
    
     if(!strcmp(argv[1],"bnsga2"))
     {
-        // cout<<"Number of population:"<<argv[4]<<endl;//default 500    
+        // cout<<"Number of population:"<<argv[4]<<endl;//default 500
         
         bnsgaii search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atof(argv[5]),atof(argv[6]),argv[7]);
         
@@ -41,7 +41,7 @@ int main(int argc,char **argv)
         ofstream output_igd;
         output_igd.open("pareto/"+func_name+"/bnsga2/IGD.txt");
         for(int i=0;i<run_num;i++){
-            tmp=IGD(func_name,"bnsga2",i,2,pop_num,500);
+            tmp=IGD(func_name,"bnsga2",i,2,pop_num,5000);
             sum_IGD+=tmp;
             output_igd<<tmp<<endl;
         }
@@ -51,7 +51,7 @@ int main(int argc,char **argv)
         ofstream output_sp;
         output_sp.open("pareto/"+func_name+"/bnsga2/SP.txt");
         for(int i=0;i<run_num;i++){
-            tmp=SP(func_name,"bnsga2",i,2,pop_num,500);
+            tmp=SP(func_name,"bnsga2",i,2,pop_num,5000);
             sum_SP+=tmp;
             output_sp<<tmp<<endl;
         }
@@ -78,7 +78,7 @@ int main(int argc,char **argv)
         ofstream output_igd;
         output_igd.open("pareto/"+func_name+"/mopso/IGD.txt");
         for(int i=0;i<run_num;i++){
-            tmp=IGD(func_name,"mopso",i,2,pop_num,500);
+            tmp=NSGAII_GD(func_name,"mopso",i,2,pop_num,5000);
             sum_IGD+=tmp;
             output_igd<<tmp<<endl;
         }
@@ -88,7 +88,7 @@ int main(int argc,char **argv)
         ofstream output_sp;
         output_sp.open("pareto/"+func_name+"/mopso/SP.txt");
         for(int i=0;i<run_num;i++){
-            tmp=SP(func_name,"mopso",i,2,pop_num,500);
+            tmp=NSGAII_SP(func_name,"mopso",i,2,pop_num,5000);
             sum_SP+=tmp;
             output_sp<<tmp<<endl;
         }
@@ -113,7 +113,7 @@ int main(int argc,char **argv)
         ofstream output_igd;
         output_igd.open("pareto/"+func_name+"/se/IGD.txt");
         for(int i=0;i<run_num;i++){
-            tmp=IGD(func_name,"se",i,2,pop_num,500);
+            tmp=IGD(func_name,"se",i,2,pop_num,5000);
             sum_IGD+=tmp;
             output_igd<<tmp<<endl;
         }
@@ -123,7 +123,7 @@ int main(int argc,char **argv)
         ofstream output_sp;
         output_sp.open("pareto/"+func_name+"/se/SP.txt");
         for(int i=0;i<run_num;i++){
-            tmp=SP(func_name,"se",i,2,pop_num,500);
+            tmp=SP(func_name,"se",i,2,pop_num,5000);
             sum_SP+=tmp;
             output_sp<<tmp<<endl;
         }
@@ -148,7 +148,7 @@ int main(int argc,char **argv)
         ofstream output_igd;
         output_igd.open("pareto/"+func_name+"/sede/IGD.txt");
         for(int i=0;i<run_num;i++){
-            tmp=IGD(func_name,"sede",i,2,pop_num,500);
+            tmp=IGD(func_name,"sede",i,2,pop_num,5000);
             sum_IGD+=tmp;
             output_igd<<tmp<<endl;
         }
@@ -158,7 +158,7 @@ int main(int argc,char **argv)
         ofstream output_sp;
         output_sp.open("pareto/"+func_name+"/sede/SP.txt");
         for(int i=0;i<run_num;i++){
-            tmp=SP(func_name,"sede",i,2,pop_num,500);
+            tmp=SP(func_name,"sede",i,2,pop_num,5000);
             sum_SP+=tmp;
             output_sp<<tmp<<endl;
         }
