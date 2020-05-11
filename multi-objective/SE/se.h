@@ -9,7 +9,7 @@
 #include <fstream>
 #include <math.h>
 #include <iomanip>
-#include "../test_problem.h"
+#include "../test_problem/test_problem.h"
 using namespace std;
 
 class se{

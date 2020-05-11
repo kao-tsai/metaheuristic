@@ -5,10 +5,11 @@ set zlabel 'f_3'
 set title ARG2
 set term png enhanced font 'Verdana,10'
 set key left bottom
+set view 20,120
 set output ARG1
 
 splot[ARG3:ARG4][ARG5:ARG6][ARG7:ARG8]ARG9 using 1:2:3 with points pt 6 lc rgb "web-blue" title 'pareto',\
-#ARG8 using 1:2 with lines lw 2 lc rgb "light-red" title 'opt'
+#"download_opt/UF8_opt.txt" using 1:2:3 with points pt 1 lw 2 lc rgb "red" title 'opt'
 #plot [ARG3:ARG4][ARG5:ARG6]ARG7 using 1:2 pt 7 ps 1 title 'pareto'
 
 

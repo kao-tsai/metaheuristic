@@ -8,7 +8,7 @@
 #include <iomanip>
 #include <limits>
 #include <random>
-#include "../test_problem.h"
+#include "../test_problem/test_problem.h"
 
 using namespace std;
 # define EPS 1.0e-14

@@ -9,7 +9,7 @@
 #include <fstream>
 #include <math.h>
 #include <iomanip>
-#include "../test_problem.h"
+#include "../test_problem/test_problem.h"
 using namespace std;
 
 class sede{
@@ -28,7 +28,6 @@ class sede{
 		void init();
         void ga_crossover();
         void de_mut();
-        void adaptive_F_CR();
         void arrange();
         void cal_ev();
         void choose_sample(int);
@@ -51,6 +50,8 @@ class sede{
         void Euclidean_d_evaluate(d1&);
         void print_each_plot(int,dd2&);
         void combine_region();
+        void update_uCr_uF();
+        void generate_new_Cr_F();
 private:
 	int numRuns;
 	int numIter;
@@ -108,8 +109,12 @@ private:
     double dominate_pressure;
     double crowd_p;
     double crowd_p_max;
+    dd2 CR_i;
+    dd2 F_i;
     dd1 S_cr;
-    dd1 S_F;
+    dd1 S_f;
+    double u_cr;
+    double u_f;
     int tmp_iter;
     string func_name;
     test_problem func;
@@ -171,8 +176,12 @@ void sede::init(){
     region_best_fit.assign(region_num,0);
     combine_region_id.assign(searcher_num+sample_num*region_num,-1);
     region_selected_by_s.assign(searcher_num,-1);
-    
-    
+    CR_i.assign(region_num,dd1(sample_num,0.2));
+    F_i.assign(region_num,dd1(sample_num,0.6));
+    S_cr.clear();
+    S_f.clear();
+    u_cr=0.5;
+    u_f=0.6;
     //擴充upperbound和lowerbound
     // for(int i=0;i<dim;i++){
     //     upperbound[i]+=upperbound[i]*0.5;
@@ -283,23 +292,74 @@ void sede::arrange(){
         
     // }
     // exit(0);
+    
+    //記得刪除
+    // for(int l=0;l<archive_fit.size();l++){
+    //     for(int a=0;a<obj_num;a++)
+    //         cout<<archive_fit[l][a]<<" ";
+    //     cout<<endl;
+    // }
+    
 
     //紀錄dominated數量和dominate set
+    //two-objective
+    // d2 set(archive_size,d1(1,0));
+    // for(int i=0;i<archive_size-1;i++) 
+    //     for(int j=i+1;j<archive_size;j++)
+    //         if(archive_fit[i][0]<=archive_fit[j][0]&&archive_fit[i][1]<=archive_fit[j][1])
+    //             if(archive_fit[i][0]==archive_fit[j][0]&&archive_fit[i][1]==archive_fit[j][1])
+    //                 continue;
+    //             else{
+    //                 set[i].push_back(j);
+    //                 set[j][0]++;
+    //             }
+    //         else if(archive_fit[i][0]>=archive_fit[j][0]&&archive_fit[i][1]>=archive_fit[j][1]){
+    //             set[i][0]++;
+    //             set[j].push_back(i);
+    //         }
+
+    // d2 set(archive_size,d1(1,0));
+    //     for(int i=0;i<archive_size-1;i++) 
+    //         for(int j=i+1;j<archive_size;j++)
+    //             if(archive_fit[i][0]<=archive_fit[j][0]&&archive_fit[i][1]<=archive_fit[j][1])
+    //                 if(archive_fit[i][0]==archive_fit[j][0]&&archive_fit[i][1]==archive_fit[j][1]&&archive_fit[i][2]==archive_fit[j][2])
+    //                     continue;
+    //                 else{
+    //                     set[i].push_back(j);
+    //                     set[j][0]++;
+    //                 }
+    //             else if(archive_fit[i][0]>=archive_fit[j][0]&&archive_fit[i][1]>=archive_fit[j][1]&&archive_fit[i][2]>=archive_fit[j][2]){
+    //                 set[i][0]++;
+    //                 set[j].push_back(i);
+    //             }
+        
+    //higer-objective
     d2 set(archive_size,d1(1,0));
+    
     for(int i=0;i<archive_size-1;i++) 
-        for(int j=i+1;j<archive_size;j++)
-            if(archive_fit[i][0]<=archive_fit[j][0]&&archive_fit[i][1]<=archive_fit[j][1])
-                if(archive_fit[i][0]==archive_fit[j][0]&&archive_fit[i][1]==archive_fit[j][1])
-                    continue;
-                else{
+        for(int j=i+1;j<archive_size;j++){
+            int do_count=0;
+            int equal_count=0;
+            for(int ob=0;ob<obj_num;ob++)
+                if(archive_fit[i][ob]<=archive_fit[j][ob]){
+                    do_count++;
+                    if(archive_fit[i][ob]==archive_fit[j][ob])
+                        equal_count++;
+                }
+            if(equal_count==obj_num)
+                continue;
+            else
+                if(do_count==obj_num){
                     set[i].push_back(j);
                     set[j][0]++;
                 }
-            else if(archive_fit[i][0]>=archive_fit[j][0]&&archive_fit[i][1]>=archive_fit[j][1]){
-                set[i][0]++;
-                set[j].push_back(i);
-            }
-   
+                else if(do_count==0){
+                    set[i][0]++;
+                    set[j].push_back(i);
+                }
+        }
+    
+        
     //開始排rank
     d2 rank;
     d1 rank_i;
@@ -320,9 +380,10 @@ void sede::arrange(){
                 set[set[rank_i[i]][j]][0]--;
         rank_i.clear();
     }
+    
     combine_sol=archive;
     combine_fit=fitness(combine_sol);
-
+    
     //做crowding_distance
     for(int i=0;i<rank.size();i++)
         if(rank[i].size()>2)
@@ -340,8 +401,10 @@ void sede::arrange(){
     for(int i=0;i<region_num;i++)
         for(int j=0;j<sample_num;j++)
             sample_cdr_fit[i][j]=combine_cdr_fit[searcher_num+i*sample_num+j];
-
+    
     rank_0=rank[0];
+    // cout<<rank_0.size()<<endl;
+   
     dd2 tmp_archive;
     d1 tmp_region_id;
     tmp_archive=archive;
@@ -352,9 +415,246 @@ void sede::arrange(){
         archive[i]=tmp_archive[rank_0[i]];
         combine_region_id[i]=tmp_region_id[rank_0[i]];
     }
-    
 
 }
+
+// void sede::de_mut(){
+//     double rnd;
+//     double F=0.5;
+//     int num_player=sample_num*0.5;
+
+//     // if(tmp_iter>numIter*0.8)
+//     //     F=0.2;
+    
+//     for (int i = 0; i < searcher_num; i++){
+//         for (int j = 0; j < region_num; j++){
+            
+//             //Do the current_to_best => High Convergence
+//             /*
+//             if(j==region_selected_by_s[i]){
+//                 for (int k = 0; k < sample_num; k++){
+//                     //choose gbest1 and gbest2 with tournament selection
+//                     int gbest1=rand()%sample_num;
+//                     int gbest2=rand()%sample_num;
+//                     int rand_s=rand()%sample_num;
+//                     while (gbest1 == gbest2)
+//                         gbest2 = rand()%sample_num;
+//                     // touranment selection
+//                     for (int l = 0; l < num_player - 1; l++)
+//                     {
+                        
+//                         int r = rand()%sample_num;
+//                         if (sample_cdr_fit[j][r] < sample_cdr_fit[j][gbest1] && sample[j][r] != searcher[i])
+//                             gbest1 = r;
+//                         if (sample_cdr_fit[j][r] < sample_cdr_fit[j][gbest2] && r != gbest1 && sample[j][r] != searcher[i])
+//                             gbest2 = r;
+//                     }
+                    
+//                     while (rand_s == gbest2 || sample[j][rand_s] == searcher[i])
+//                         rand_s = rand()%sample_num;
+//                     int d_rand=rand()%dim;
+//                     for(int l=0;l<dim;l++){
+//                         rnd=(double)rand()/RAND_MAX;
+//                         if(rnd<crossover_pro||d_rand==l){
+//                             sampleV[i][j][k][l]=searcher[i][l]+F*(sample[j][gbest1][l]-searcher[i][l])
+//                                                 +F*(sample[j][gbest2][l]-sample[j][rand_s][l]);
+//                             // cout<<sampleV[i][j][k][l]<<" ";
+//                             //Keep the solution in the bound
+//                             if(l<clip_bit_num){
+//                                 if(sampleV[i][j][k][l]<region_bound[j][0][l])
+//                                     sampleV[i][j][k][l]=(region_bound[j][0][l]+searcher[i][l])/2.0;
+//                                 else if(sampleV[i][j][k][l]>region_bound[j][1][l])
+//                                     sampleV[i][j][k][l]=(region_bound[j][1][l]+searcher[i][l])/2.0;
+//                             }
+//                             else{
+//                                 if(sampleV[i][j][k][l]<lowerbound[l])
+//                                     sampleV[i][j][k][l]=(lowerbound[l]+searcher[i][l])/2.0;
+//                                 else if(sampleV[i][j][k][l]>upperbound[l])
+//                                     sampleV[i][j][k][l]=(upperbound[l]+searcher[i][l])/2.0;
+//                             }  
+                                
+//                         }
+//                         else
+//                         {
+//                             sampleV[i][j][k][l]=sample[j][k][l];
+//                             // cout<<sampleV[i][j][k][l]<<" ";
+//                         }
+//                     }
+//                     // cout<<endl;
+//                 }
+//             }
+//             */
+//             if(j==region_selected_by_s[i]){
+
+//                 for (int k = 0; k < sample_num; k++){
+//                     //choose gbest1 and gbest2 with tournament selection
+//                     // int gbest1=rand()%sample_num;
+//                     int gbest2=rand()%sample_num;
+//                     int rand_s=rand()%sample_num;
+//                     while (searcher[i] == sample[j][gbest2])
+//                         gbest2 = rand()%sample_num;
+//                     // touranment selection
+//                     for (int l = 0; l < num_player - 1; l++)
+//                     {  
+//                         int r = rand()%sample_num;
+//                         if (sample_cdr_fit[j][r] < sample_cdr_fit[j][gbest2] && sample[j][r] != searcher[i])
+//                             gbest2 = r;
+//                     }
+                    
+//                     while (rand_s == gbest2 || sample[j][rand_s] == searcher[i])
+//                         rand_s = rand()%sample_num;
+//                     int d_rand=rand()%dim;
+//                     for(int l=0;l<dim;l++){
+//                         rnd=(double)rand()/RAND_MAX;
+//                         if(rnd<crossover_pro||d_rand==l){
+//                             sampleV[i][j][k][l]=sample[j][k][l]+F*(searcher[i][l]-sample[j][k][l])
+//                                                 +F*(sample[j][gbest2][l]-sample[j][rand_s][l]);
+//                             // cout<<sampleV[i][j][k][l]<<" ";
+//                             //Keep the solution in the bound
+//                             if(l<clip_bit_num){
+//                                 if(sampleV[i][j][k][l]<region_bound[j][0][l])
+//                                     sampleV[i][j][k][l]=(region_bound[j][0][l]+searcher[i][l])/2.0;
+//                                 else if(sampleV[i][j][k][l]>region_bound[j][1][l])
+//                                     sampleV[i][j][k][l]=(region_bound[j][1][l]+searcher[i][l])/2.0;
+//                             }
+//                             else{
+//                                 if(sampleV[i][j][k][l]<lowerbound[l])
+//                                     sampleV[i][j][k][l]=(lowerbound[l]+searcher[i][l])/2.0;
+//                                 else if(sampleV[i][j][k][l]>upperbound[l])
+//                                     sampleV[i][j][k][l]=(upperbound[l]+searcher[i][l])/2.0;
+//                             }  
+                                
+//                         }
+//                         else
+//                         {
+//                             sampleV[i][j][k][l]=sample[j][k][l];
+//                             // cout<<sampleV[i][j][k][l]<<" ";
+//                         }
+//                     }
+//                     // cout<<endl;
+//                 }
+//             }
+
+//             //Do the random_to_best => High Diversity
+//             /*
+//             else{
+//                 for (int k = 0; k < sample_num; k++){
+//                     //choose gbest1 and gbest2 with tournament selection
+//                     int gbest1=rand()%sample_num;
+//                     int gbest2=rand()%sample_num;
+//                     int rand_s1=rand()%sample_num;
+//                     int rand_s2=rand()%sample_num;
+//                     while (gbest1 == gbest2)
+//                         gbest2 = rand()%sample_num;
+//                     // touranment selection
+//                     for (int l = 0; l < num_player - 1; l++)
+//                     {
+//                         int r = rand()%sample_num;
+//                         if (sample_cdr_fit[j][r] < sample_cdr_fit[j][gbest1] && r != rand_s1)
+//                             gbest1 = r;
+//                         if (sample_cdr_fit[j][r] < sample_cdr_fit[j][gbest2] && r != gbest1 && r != rand_s1)
+//                             gbest2 = r;
+//                     }
+//                     while (rand_s2 == gbest2 || rand_s2 == rand_s1)
+//                         rand_s2 = rand()%sample_num;
+
+//                     //choose gbest1 and gbest2 with best solution and second best solution respectively
+//                     // int gbest1;
+//                     // int gbest2;
+//                     // int rand_s1;
+//                     // int rand_s2;
+                    
+//                     int d_rand=rand()%dim;
+//                     for(int l=0;l<dim;l++){
+//                         rnd=(double)rand()/RAND_MAX;
+//                         if(rnd<crossover_pro || d_rand==l){
+//                             sampleV[i][j][k][l]=sample[j][rand_s1][l]+F*(sample[j][gbest1][l]-sample[j][rand_s1][l])
+//                                                 +F*(sample[j][gbest2][l]-sample[j][rand_s2][l]);
+//                             //Keep the solution in the bound
+//                             if(l<clip_bit_num){
+//                                 if(sampleV[i][j][k][l]<region_bound[j][0][l])
+//                                     sampleV[i][j][k][l]=(region_bound[j][0][l]+searcher[i][l])/2.0;
+//                                 else if(sampleV[i][j][k][l]>region_bound[j][1][l])
+//                                     sampleV[i][j][k][l]=(region_bound[j][1][l]+searcher[i][l])/2.0;
+//                             }
+//                             else{
+//                                 if(sampleV[i][j][k][l]<lowerbound[l])
+//                                     sampleV[i][j][k][l]=(lowerbound[l]+searcher[i][l])/2.0;
+//                                 else if(sampleV[i][j][k][l]>upperbound[l])
+//                                     sampleV[i][j][k][l]=(upperbound[l]+searcher[i][l])/2.0;
+//                             }  
+//                         }
+//                         else{
+//                             sampleV[i][j][k][l]=sample[j][k][l];
+//                         }
+//                     }
+                   
+//                 }
+//             }*/
+            
+//             else{
+//                 for (int k = 0; k < sample_num; k++){
+//                     //choose gbest1 and gbest2 with tournament selection
+//                     // int gbest1=rand()%sample_num;
+//                     int gbest2=rand()%sample_num;
+//                     int rand_s1=rand()%sample_num;
+//                     int rand_s2=rand()%sample_num;
+//                     while (searcher[i] == sample[j][gbest2])
+//                         gbest2 = rand()%sample_num;
+//                     // touranment selection
+//                     for (int l = 0; l < num_player - 1; l++)
+//                     {
+//                         int r = rand()%sample_num;
+//                         // if (sample_cdr_fit[j][r] < sample_cdr_fit[j][gbest1] && r != rand_s1)
+//                         //     gbest1 = r;
+//                         if (sample_cdr_fit[j][r] < sample_cdr_fit[j][gbest2] && r != rand_s1 && searcher[i]!=sample[j][r])
+//                             gbest2 = r;
+//                     }
+//                     while (rand_s2 == gbest2 || rand_s2 == rand_s1)
+//                         rand_s2 = rand()%sample_num;
+
+//                     //choose gbest1 and gbest2 with best solution and second best solution respectively
+//                     // int gbest1;
+//                     // int gbest2;
+//                     // int rand_s1;
+//                     // int rand_s2;
+                    
+//                     int d_rand=rand()%dim;
+//                     for(int l=0;l<dim;l++){
+//                         rnd=(double)rand()/RAND_MAX;
+//                         if(rnd<crossover_pro || d_rand==l){
+//                             sampleV[i][j][k][l]=sample[j][rand_s1][l]+F*(searcher[i][l]-sample[j][rand_s1][l])
+//                                                 +F*(sample[j][gbest2][l]-sample[j][rand_s2][l]);
+//                             //Keep the solution in the bound
+//                             if(l<clip_bit_num){
+//                                 if(sampleV[i][j][k][l]<region_bound[j][0][l]){
+//                                     // sampleV[i][j][k][l]=(region_bound[j][0][l]+searcher[i][l])/2.0;
+//                                     sampleV[i][j][k][l]=(region_bound[j][0][l]+sample[j][k][l])/2.0;
+//                                 }
+//                                 else if(sampleV[i][j][k][l]>region_bound[j][1][l]){
+//                                     // sampleV[i][j][k][l]=(region_bound[j][1][l]+searcher[i][l])/2.0;
+//                                     sampleV[i][j][k][l]=(region_bound[j][1][l]+sample[j][k][l])/2.0;
+//                                 }
+//                             }
+//                             else{
+//                                 if(sampleV[i][j][k][l]<lowerbound[l])
+//                                     sampleV[i][j][k][l]=(lowerbound[l]+searcher[i][l])/2.0;
+//                                 else if(sampleV[i][j][k][l]>upperbound[l])
+//                                     sampleV[i][j][k][l]=(upperbound[l]+searcher[i][l])/2.0;
+//                             }  
+//                         }
+//                         else{
+//                             sampleV[i][j][k][l]=sample[j][k][l];
+//                         }
+//                     }
+                   
+//                 }
+//             }
+//         }
+//         
+//     }
+        
+// }
 
 void sede::de_mut(){
     double rnd;
@@ -366,62 +666,6 @@ void sede::de_mut(){
     
     for (int i = 0; i < searcher_num; i++){
         for (int j = 0; j < region_num; j++){
-            
-            //Do the current_to_best => High Convergence
-            /*
-            if(j==region_selected_by_s[i]){
-                for (int k = 0; k < sample_num; k++){
-                    //choose gbest1 and gbest2 with tournament selection
-                    int gbest1=rand()%sample_num;
-                    int gbest2=rand()%sample_num;
-                    int rand_s=rand()%sample_num;
-                    while (gbest1 == gbest2)
-                        gbest2 = rand()%sample_num;
-                    // touranment selection
-                    for (int l = 0; l < num_player - 1; l++)
-                    {
-                        
-                        int r = rand()%sample_num;
-                        if (sample_cdr_fit[j][r] < sample_cdr_fit[j][gbest1] && sample[j][r] != searcher[i])
-                            gbest1 = r;
-                        if (sample_cdr_fit[j][r] < sample_cdr_fit[j][gbest2] && r != gbest1 && sample[j][r] != searcher[i])
-                            gbest2 = r;
-                    }
-                    
-                    while (rand_s == gbest2 || sample[j][rand_s] == searcher[i])
-                        rand_s = rand()%sample_num;
-                    int d_rand=rand()%dim;
-                    for(int l=0;l<dim;l++){
-                        rnd=(double)rand()/RAND_MAX;
-                        if(rnd<crossover_pro||d_rand==l){
-                            sampleV[i][j][k][l]=searcher[i][l]+F*(sample[j][gbest1][l]-searcher[i][l])
-                                                +F*(sample[j][gbest2][l]-sample[j][rand_s][l]);
-                            // cout<<sampleV[i][j][k][l]<<" ";
-                            //Keep the solution in the bound
-                            if(l<clip_bit_num){
-                                if(sampleV[i][j][k][l]<region_bound[j][0][l])
-                                    sampleV[i][j][k][l]=(region_bound[j][0][l]+searcher[i][l])/2.0;
-                                else if(sampleV[i][j][k][l]>region_bound[j][1][l])
-                                    sampleV[i][j][k][l]=(region_bound[j][1][l]+searcher[i][l])/2.0;
-                            }
-                            else{
-                                if(sampleV[i][j][k][l]<lowerbound[l])
-                                    sampleV[i][j][k][l]=(lowerbound[l]+searcher[i][l])/2.0;
-                                else if(sampleV[i][j][k][l]>upperbound[l])
-                                    sampleV[i][j][k][l]=(upperbound[l]+searcher[i][l])/2.0;
-                            }  
-                                
-                        }
-                        else
-                        {
-                            sampleV[i][j][k][l]=sample[j][k][l];
-                            // cout<<sampleV[i][j][k][l]<<" ";
-                        }
-                    }
-                    // cout<<endl;
-                }
-            }
-            */
             if(j==region_selected_by_s[i]){
 
                 for (int k = 0; k < sample_num; k++){
@@ -444,9 +688,9 @@ void sede::de_mut(){
                     int d_rand=rand()%dim;
                     for(int l=0;l<dim;l++){
                         rnd=(double)rand()/RAND_MAX;
-                        if(rnd<crossover_pro||d_rand==l){
-                            sampleV[i][j][k][l]=sample[j][k][l]+F*(searcher[i][l]-sample[j][k][l])
-                                                +F*(sample[j][gbest2][l]-sample[j][rand_s][l]);
+                        if(rnd<CR_i[j][k] ||d_rand==l){
+                            sampleV[i][j][k][l]=sample[j][k][l]+F_i[j][k]*(searcher[i][l]-sample[j][k][l])
+                                                +F_i[j][k]*(sample[j][gbest2][l]-sample[j][rand_s][l]);
                             // cout<<sampleV[i][j][k][l]<<" ";
                             //Keep the solution in the bound
                             if(l<clip_bit_num){
@@ -471,65 +715,7 @@ void sede::de_mut(){
                     }
                     // cout<<endl;
                 }
-            }
-
-            //Do the random_to_best => High Diversity
-            /*
-            else{
-                for (int k = 0; k < sample_num; k++){
-                    //choose gbest1 and gbest2 with tournament selection
-                    int gbest1=rand()%sample_num;
-                    int gbest2=rand()%sample_num;
-                    int rand_s1=rand()%sample_num;
-                    int rand_s2=rand()%sample_num;
-                    while (gbest1 == gbest2)
-                        gbest2 = rand()%sample_num;
-                    // touranment selection
-                    for (int l = 0; l < num_player - 1; l++)
-                    {
-                        int r = rand()%sample_num;
-                        if (sample_cdr_fit[j][r] < sample_cdr_fit[j][gbest1] && r != rand_s1)
-                            gbest1 = r;
-                        if (sample_cdr_fit[j][r] < sample_cdr_fit[j][gbest2] && r != gbest1 && r != rand_s1)
-                            gbest2 = r;
-                    }
-                    while (rand_s2 == gbest2 || rand_s2 == rand_s1)
-                        rand_s2 = rand()%sample_num;
-
-                    //choose gbest1 and gbest2 with best solution and second best solution respectively
-                    // int gbest1;
-                    // int gbest2;
-                    // int rand_s1;
-                    // int rand_s2;
-                    
-                    int d_rand=rand()%dim;
-                    for(int l=0;l<dim;l++){
-                        rnd=(double)rand()/RAND_MAX;
-                        if(rnd<crossover_pro || d_rand==l){
-                            sampleV[i][j][k][l]=sample[j][rand_s1][l]+F*(sample[j][gbest1][l]-sample[j][rand_s1][l])
-                                                +F*(sample[j][gbest2][l]-sample[j][rand_s2][l]);
-                            //Keep the solution in the bound
-                            if(l<clip_bit_num){
-                                if(sampleV[i][j][k][l]<region_bound[j][0][l])
-                                    sampleV[i][j][k][l]=(region_bound[j][0][l]+searcher[i][l])/2.0;
-                                else if(sampleV[i][j][k][l]>region_bound[j][1][l])
-                                    sampleV[i][j][k][l]=(region_bound[j][1][l]+searcher[i][l])/2.0;
-                            }
-                            else{
-                                if(sampleV[i][j][k][l]<lowerbound[l])
-                                    sampleV[i][j][k][l]=(lowerbound[l]+searcher[i][l])/2.0;
-                                else if(sampleV[i][j][k][l]>upperbound[l])
-                                    sampleV[i][j][k][l]=(upperbound[l]+searcher[i][l])/2.0;
-                            }  
-                        }
-                        else{
-                            sampleV[i][j][k][l]=sample[j][k][l];
-                        }
-                    }
-                   
-                }
-            }*/
-            
+            }         
             else{
                 for (int k = 0; k < sample_num; k++){
                     //choose gbest1 and gbest2 with tournament selection
@@ -551,18 +737,13 @@ void sede::de_mut(){
                     while (rand_s2 == gbest2 || rand_s2 == rand_s1)
                         rand_s2 = rand()%sample_num;
 
-                    //choose gbest1 and gbest2 with best solution and second best solution respectively
-                    // int gbest1;
-                    // int gbest2;
-                    // int rand_s1;
-                    // int rand_s2;
                     
                     int d_rand=rand()%dim;
                     for(int l=0;l<dim;l++){
                         rnd=(double)rand()/RAND_MAX;
-                        if(rnd<crossover_pro || d_rand==l){
-                            sampleV[i][j][k][l]=sample[j][rand_s1][l]+F*(searcher[i][l]-sample[j][rand_s1][l])
-                                                +F*(sample[j][gbest2][l]-sample[j][rand_s2][l]);
+                        if(rnd<CR_i[j][k] || d_rand==l){
+                            sampleV[i][j][k][l]=sample[j][rand_s1][l]+F_i[j][k]*(searcher[i][l]-sample[j][rand_s1][l])
+                                                +F_i[j][k]*(sample[j][gbest2][l]-sample[j][rand_s2][l]);
                             //Keep the solution in the bound
                             if(l<clip_bit_num){
                                 if(sampleV[i][j][k][l]<region_bound[j][0][l]){
@@ -589,7 +770,6 @@ void sede::de_mut(){
                 }
             }
         }
-        // cout<<"hello"<<endl;
     }
         
 }
@@ -609,13 +789,13 @@ void sede::cal_cdr_fit(){
     for(int i=0;i<region_num;i++)
         for(int j=0;j<sample_num;j++){
             bool flag=true;
-            for(int k=0;k<archive_size;k++)
-                if(combine_sol[k]==sample[i][j]){
-                    store_sample_pos.push_back(k);
-                    combine_region_id[k]=i;
-                    flag=false;
-                    break;
-                }
+            // for(int k=0;k<archive_size;k++)
+            //     if(combine_sol[k]==sample[i][j]){
+            //         store_sample_pos.push_back(k);
+            //         combine_region_id[k]=i;
+            //         flag=false;
+            //         break;
+            //     }
             if(flag){
                 combine_sol.push_back(sample[i][j]);
                 sample_end++;
@@ -671,20 +851,59 @@ void sede::cal_cdr_fit(){
     // cout<<"combine_fit_size:"<<combine_fit.size()<<endl;
 
     //紀錄dominated數量和dominate set
+    // d2 set(combine_size,d1(1,0));
+    // for(int i=0;i<combine_size-1;i++) 
+    //     for(int j=i+1;j<combine_size;j++)
+    //         if(combine_fit[i][0]<=combine_fit[j][0]&&combine_fit[i][1]<=combine_fit[j][1])
+    //             if(combine_fit[i][0]==combine_fit[j][0]&&combine_fit[i][1]==combine_fit[j][1])
+    //                 continue;
+    //             else{
+    //                 set[i].push_back(j);
+    //                 set[j][0]++;
+    //             }
+    //         else if(combine_fit[i][0]>=combine_fit[j][0]&&combine_fit[i][1]>=combine_fit[j][1]){
+    //             set[i][0]++;
+    //             set[j].push_back(i);
+    //         }
+    // d2 set(combine_size,d1(1,0));
+    //     for(int i=0;i<combine_size-1;i++) 
+    //         for(int j=i+1;j<combine_size;j++)
+    //             if(combine_fit[i][0]<=combine_fit[j][0]&&combine_fit[i][1]<=combine_fit[j][1])
+    //                 if(combine_fit[i][0]==combine_fit[j][0]&&combine_fit[i][1]==combine_fit[j][1]&&combine_fit[i][2]==combine_fit[j][2])
+    //                     continue;
+    //                 else{
+    //                     set[i].push_back(j);
+    //                     set[j][0]++;
+    //                 }
+    //             else if(combine_fit[i][0]>=combine_fit[j][0]&&combine_fit[i][1]>=combine_fit[j][1]&&combine_fit[i][2]>=combine_fit[j][2]){
+    //                 set[i][0]++;
+    //                 set[j].push_back(i);
+    //             }
+
+    //higher-objective
     d2 set(combine_size,d1(1,0));
     for(int i=0;i<combine_size-1;i++) 
-        for(int j=i+1;j<combine_size;j++)
-            if(combine_fit[i][0]<=combine_fit[j][0]&&combine_fit[i][1]<=combine_fit[j][1])
-                if(combine_fit[i][0]==combine_fit[j][0]&&combine_fit[i][1]==combine_fit[j][1])
-                    continue;
-                else{
+        for(int j=i+1;j<combine_size;j++){
+            int do_count=0;
+            int equal_count=0;
+            for(int ob=0;ob<obj_num;ob++)
+                if(combine_fit[i][ob]<=combine_fit[j][ob]){
+                    do_count++;
+                    if(combine_fit[i][ob]==combine_fit[j][ob])
+                        equal_count++;
+                }
+            if(equal_count==obj_num)
+                continue;
+            else
+                if(do_count==obj_num){
                     set[i].push_back(j);
                     set[j][0]++;
                 }
-            else if(combine_fit[i][0]>=combine_fit[j][0]&&combine_fit[i][1]>=combine_fit[j][1]){
-                set[i][0]++;
-                set[j].push_back(i);
-            }
+                else if(do_count==0){
+                    set[i][0]++;
+                    set[j].push_back(i);
+                }
+        }
     
     //開始排rank
     d2 rank;
@@ -719,7 +938,7 @@ void sede::cal_cdr_fit(){
     //     if(rank[i].size()>2)
     //         Euclidean_crowding(rank[i]);
     
-    //1.嘗試填滿archive(bugfix:2020/03/18)
+    // 1.嘗試填滿archive(bugfix:2020/03/18)
     if(rank[0].size()>max_pareto){
         rank_0=rank[0];
         //-----------------------------//
@@ -800,8 +1019,58 @@ void sede::cal_cdr_fit(){
     //     cout<<combine_fit[rank[0][3]][0]<<" "<<combine_fit[rank[0][3]][1]<<endl;
     // }
 }
-void sede::adaptive_F_CR(){
+void sede::generate_new_Cr_F(){
+    random_device rd;
+    mt19937 generator(rd());
+    normal_distribution<double> cr_dist(u_cr,0.1);
+    normal_distribution<double> f_dist(u_f,0.1);
 
+    default_random_engine gen = std::default_random_engine(rd());
+    uniform_real_distribution<double> rndF(0,1.2);
+    
+    // int one_third=(region_num*sample_num)/3;
+    for(int i=0;i<region_num;i++)
+        for(int j=0;j<sample_num;j++){
+
+            // CR_i[i][j]=cr_dist(generator);
+            // F_i[i][j]=f_dist(generator);
+            if(((double)rand()/RAND_MAX)<0.1)
+                CR_i[i][j]=0.0+((double)rand()/RAND_MAX)*(0.9-0.0);
+            if(((double)rand()/RAND_MAX)<0.1)
+                F_i[i][j]=0.1+((double)rand()/RAND_MAX)*(1.0-0.1);
+        }
+//     for(int i=0;i<region_num;i++){
+//         if(one_third!=0){
+//             F_i[i][rand()%sample_num]=rndF(gen);
+//             one_third--;
+//         }
+//         else
+//             break;
+//         if(i==region_num-1)
+//             i=(i+1)%region_num;   
+//     }
+//     S_cr.clear();
+//     S_f.clear();
+}
+void sede::update_uCr_uF(){
+    double c=0.1;
+    //
+    double mean_S_cr=0;
+    for(int i=0;i<S_cr.size();i++)
+        mean_S_cr+=S_cr[i];
+    if(mean_S_cr!=0)
+        mean_S_cr/=S_cr.size();
+    u_cr=(1-c)*u_cr+c*mean_S_cr;
+    //
+    double lemer=0.0;
+    double sum1=0,sum2=0;
+    for(int i=0;i<S_f.size();i++){
+        sum1+=pow(S_f[i],2.0);
+        sum2+=S_f[i];
+    }
+    if(sum2!=0)
+        lemer=sum1/sum2;
+    u_f=(1-c)*u_cr+c*lemer;
 }
 void sede::combine_region(){
     clip_bit_num--;
@@ -816,6 +1085,15 @@ void sede::combine_region(){
             new_sample[i/2][j+(i%2)*sample_num]=sample[i][j];
             new_sample_fit[i/2][j+(i%2)*sample_num]=sample_cdr_fit[i][j];
         }
+
+    dd2 new_F_i(region_num/2,dd1(sample_num*2));
+    dd2 new_Cr_i(region_num/2,dd1(sample_num*2));
+    for(int i=0;i<region_num;i++)
+        for(int j=0;j<sample_num;j++){
+            new_F_i[i/2][j+(i%2)*sample_num]=F_i[i][j];
+            new_Cr_i[i/2][j+(i%2)*sample_num]=CR_i[i][j];
+        }
+    
     dd4 new_sampleV(searcher_num,dd3(region_num/2,dd2(sample_num*2,dd1(dim,0.0))));
     dd3 new_sampleV_fit(searcher_num,dd2(region_num/2,dd1(sample_num*2)));
     for(int i=0;i<searcher_num;i++)
@@ -825,6 +1103,8 @@ void sede::combine_region(){
                 new_sampleV_fit[i][j/2][k+(j%2)*sample_num]=sampleV_cdr_fit[i][j][k];
             }
         }
+
+    
     //searcher_select_region
     for(int i=0;i<searcher_num;i++)
         region_selected_by_s[i]=region_selected_by_s[i]/2;
@@ -837,6 +1117,8 @@ void sede::combine_region(){
     //sample and sampleV init
     sample=new_sample;
     sample_cdr_fit=new_sample_fit;
+    F_i=new_F_i;
+    CR_i=new_Cr_i;
     sampleV=new_sampleV;
     sampleV_cdr_fit=new_sampleV_fit;
     sample_num*=2;
@@ -904,7 +1186,7 @@ void sede::cal_ev(){
     //
     
     cal_cdr_fit();
-    
+    // cout<<"hello"<<endl;
     double Tj,Vj,Mj;
 
     double sample_fit_sum=0.0;
@@ -956,6 +1238,9 @@ void sede::choose_sample(int choose_method){
                         // for (int l = clip_bit_num; l < numPatterns; l++)
                         sample[j][k]= sampleV[i][j][k];
                         sample_cdr_fit[j][k] = sampleV_cdr_fit[i][j][k];
+                        //
+                        // S_cr.push_back(CR_i[j][k]);
+                        // S_f.push_back(F_i[j][k]);
                     }
                     // if (sampleV_cdr_fit[i][j][k*2+1] > sample_cdr_fit[j][k]) {
                     //     // for (int l = clip_bit_num; l < numPatterns; l++)
@@ -1620,17 +1905,20 @@ void sede::print_each_plot(int iter_now,dd2& real_sol){
 void sede::run(){
     int combine_time=numIter/region_num;
     int time_count=combine_time;
-    default_random_engine generator;
-    normal_distribution<double> distribution(5.0,2.0);
+    
     for(int i=0;i<numRuns;i++){
         
         init();
+        
         // combine_time=numIter/region_num;
         // time_count=combine_time;
+
         arrange();
         
         for(int j=0;j<numIter;j++){
+            
             tmp_iter=j;
+            generate_new_Cr_F();
             
             de_mut();
             
@@ -1639,10 +1927,9 @@ void sede::run(){
             select_player();
             
             marketing_survey();
-            // cout<<j<<"hello"<<endl;
-            // cout<<j<<" hello"<<endl;
-            // cout<<tmp_iter<<endl;
-            // print_each_plot(j,real_sol);
+
+            // update_uCr_uF();
+            
 
             // if(j>time_count && region_num!=1){
                 
@@ -1662,7 +1949,7 @@ void sede::run(){
     //     //cout<<"decode"<<i<<endl;
     //     real_sol[i]=decode(archive[i]);
     // }    
-    
+    // cout<<archive.size()<<endl;
     dd2 output_archive(max_pareto);
     output_archive=fitness(archive);
     //輸出該RUN的所有解
@@ -1676,6 +1963,7 @@ void sede::run(){
         }
         output_obj.close();
     }
+    
     
 }
 
