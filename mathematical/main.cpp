@@ -6,6 +6,7 @@
 #include"SE/SE.h"
 #include"MFO/mfo.h"
 #include"PSO/pso.h"
+#include"MFODE/mfode.h"
 #include"GA/ga.h"
 #include"TLBO/tlbo.h"
 #include<algorithm>
@@ -15,9 +16,9 @@ using namespace std;
 
 int main(int argc,char **argv)
 {
-    cout<<"Algorithm:"<<argv[1]<<endl;
-    cout<<"Number of runs:"<<argv[2]<<endl;
-    cout<<"Number of iterations:"<<argv[3]<<endl;
+    // cout<<"Algorithm:"<<argv[1]<<endl;
+    // cout<<"Number of runs:"<<argv[2]<<endl;
+    // cout<<"Number of iterations:"<<argv[3]<<endl;
     
     
     if(!strcmp(argv[1],"hoo"))
@@ -64,13 +65,13 @@ int main(int argc,char **argv)
     }
     if(!strcmp(argv[1],"mfo"))
     {
-        cout<<"Number of population:"<<argv[4]<<endl;
+        // cout<<"Number of population:"<<argv[4]<<endl;
         mfo search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),argv[6]);
         mfo::solution sol=search.run();
         
-        for(int j=0;j<sol.size();j++)
-            cout<<sol[j]<<" ";
-        cout<<endl;
+        // for(int j=0;j<sol.size();j++)
+        //     cout<<sol[j]<<" ";
+        // cout<<endl;
     }
     if(!strcmp(argv[1],"pso"))
     {
@@ -107,6 +108,25 @@ int main(int argc,char **argv)
             cout<<sol[j]<<" ";
         cout<<endl;
     }
-
+    if(!strcmp(argv[1],"de"))
+    {
+        // cout<<"Number of population:"<<argv[4]<<endl;
+        mfo search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),argv[6]);
+        mfo::solution sol=search.run();
+        
+        // for(int j=0;j<sol.size();j++)
+        //     cout<<sol[j]<<" ";
+        // cout<<endl;
+    }
+    if(!strcmp(argv[1],"mfode"))
+    {
+        // cout<<"Number of population:"<<argv[4]<<endl;
+        mfo search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),argv[6]);
+        mfo::solution sol=search.run();
+        
+        // for(int j=0;j<sol.size();j++)
+        //     cout<<sol[j]<<" ";
+        // cout<<endl;
+    }
     return 0;
 }

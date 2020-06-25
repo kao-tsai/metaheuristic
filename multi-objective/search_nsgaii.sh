@@ -28,20 +28,20 @@ pop_num=500
 # ./search bnsga2 $run 1000 100 0.9 0.033333 POL
 # gnuplot -c gnuplot/test.gp gnuplot/NSGA_POL.png POL 0 6 0 30 pareto/POL/bnsga2/POL_bnsga2_0.txt opt/POL_opt.txt
 
- ./search bnsga2 $run 300 100 0.9 0.001 ZDT1
- gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT1.png ZDT1 0 1 0 1 pareto/ZDT1/bnsga2/ZDT1_bnsga2_0.txt opt/ZDT1_opt.txt
+#  ./search bnsga2 $run 300 100 0.9 0.001 ZDT1
+#  gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT1.png ZDT1 0 1 0 1 pareto/ZDT1/bnsga2/ZDT1_bnsga2_0.txt opt/ZDT1_opt.txt
 
- ./search bnsga2 $run 300 100 0.9 0.001 ZDT2
-gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT2.png ZDT2 0 1 0 1 pareto/ZDT2/bnsga2/ZDT2_bnsga2_0.txt opt/ZDT2_opt.txt
+#  ./search bnsga2 $run 300 100 0.9 0.001 ZDT2
+# gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT2.png ZDT2 0 1 0 1 pareto/ZDT2/bnsga2/ZDT2_bnsga2_0.txt opt/ZDT2_opt.txt
 
-./search bnsga2 $run 300 100 0.9 0.001 ZDT3
-gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT3.png ZDT3 0 1 -1 1 pareto/ZDT3/bnsga2/ZDT3_bnsga2_0.txt opt/ZDT3_opt.txt
+# ./search bnsga2 $run 300 100 0.9 0.001 ZDT3
+# gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT3.png ZDT3 0 1 -1 1 pareto/ZDT3/bnsga2/ZDT3_bnsga2_0.txt opt/ZDT3_opt.txt
 
-./search bnsga2 $run 300 100 0.9 0.01 ZDT4
-gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT4.png ZDT4 0 1 0 5 pareto/ZDT4/bnsga2/ZDT4_bnsga2_0.txt opt/ZDT4_opt.txt
+# ./search bnsga2 $run 300 100 0.9 0.01 ZDT4
+# gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT4.png ZDT4 0 1 0 5 pareto/ZDT4/bnsga2/ZDT4_bnsga2_0.txt opt/ZDT4_opt.txt
 
-./search bnsga2 $run 300 100 0.9 0.001 ZDT6
-gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT6.png ZDT6 0.2 1 0 1 pareto/ZDT6/bnsga2/ZDT6_bnsga2_0.txt opt/ZDT6_opt.txt
+# ./search bnsga2 $run 300 100 0.9 0.001 ZDT6
+# gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT6.png ZDT6 0.2 1 0 1 pareto/ZDT6/bnsga2/ZDT6_bnsga2_0.txt opt/ZDT6_opt.txt
 
 # ./search bnsga2 $run 1000 100 0.9 0.01 UF1
 # gnuplot -c gnuplot/test.gp gnuplot/NSGA_UF1.png UF1 0 1.2 0 1.2 pareto/UF1/bnsga2/UF1_bnsga2_0.txt opt/UF1_opt.txt
@@ -72,3 +72,24 @@ gnuplot -c gnuplot/test.gp gnuplot/NSGA_ZDT6.png ZDT6 0.2 1 0 1 pareto/ZDT6/bnsg
 
 # ./search bnsga2 $run 500 100 0.9 0.01 UF10
 # gnuplot -c gnuplot/test.gp gnuplot/NSGA_UF10.png UF10 0 1.2 0 1.2 pareto/UF10/bnsga2/UF10_bnsga2_0.txt opt/UF10_opt.txt
+
+./search sede $run 300 100 0.9 0.01 DTLZ1
+gnuplot -c gnuplot/dim3.gp gnuplot/NSGA_DTLZ1.png DTLZ1 0 1.5 0 1.5 0 1.5 pareto/DTLZ1/bnsga2/DTLZ1_bnsga2_0.txt opt_1000/DTLZ1_opt.txt
+
+./search sede $run 200 100 0.9 0.01 DTLZ2
+gnuplot -c gnuplot/dim3.gp gnuplot/NSGA_DTLZ2.png DTLZ2 0 1.25 0 1.25 0 1.25 pareto/DTLZ2/bnsga2/DTLZ2_bnsga2_0.txt opt_1000/DTLZ2_opt.txt
+
+./search sede $run 200 100 0.9 0.01 DTLZ3
+gnuplot -c gnuplot/dim3.gp gnuplot/NSGA_DTLZ3.png DTLZ3 0 1.5 0 1.5 0 1.5 pareto/DTLZ3/bnsga2/DTLZ3_bnsga2_0.txt opt_1000/DTLZ3_opt.txt
+
+./search sede $run 200 100 0.9 0.01 DTLZ4
+gnuplot -c gnuplot/dim3.gp gnuplot/NSGA_DTLZ4.png DTLZ4 0 1.5 0 1.5 0 1.5 pareto/DTLZ4/bnsga2/DTLZ4_bnsga2_0.txt opt_1000/DTLZ4_opt.txt
+
+./search sede $run 200 100 0.9 0.01 DTLZ5
+gnuplot -c gnuplot/dim3.gp gnuplot/NSGA_DTLZ5.png DTLZ5 0 1.5 0 1.5 0 1.5 pareto/DTLZ5/bnsga2/DTLZ5_bnsga2_0.txt opt_1000/DTLZ5_opt.txt
+
+./search sede $run 200 100 0.9 0.01 DTLZ6
+gnuplot -c gnuplot/dim3.gp gnuplot/NSGA_DTLZ6.png DTLZ6 0 1.5 0 1.5 0 1.5 pareto/DTLZ6/bnsga2/DTLZ6_bnsga2_0.txt opt_1000/DTLZ6_opt.txt
+
+./search sede $run 200 100 0.9 0.01 DTLZ7
+gnuplot -c gnuplot/dim3.gp gnuplot/NSGA_DTLZ7.png DTLZ7 0 1.5 0 1.5 0 3.5 pareto/DTLZ7/bnsga2/DTLZ7_bnsga2_0.txt opt_1000/DTLZ7_opt.txt

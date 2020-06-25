@@ -126,7 +126,9 @@ double IGD(string function,string algo,string opt_data,int run,int obj,int pop,i
     opt.open(opt_data+"/"+function+"_opt.txt");
     // opt.open("nsgaiiTest/"+function+"_opt.txt");
     
-    vector<vector<double>> true_opt=vector<vector<double>> (opt_num,vector<double>(obj,0));
+    // vector<vector<double>> true_opt=vector<vector<double>> (opt_num,vector<double>(obj,0));
+    vector<vector<double>> true_opt;
+    vector<double>tmp_opt(obj);
     double get_value;
     int i=0;
     // while(i<opt_num){
@@ -140,11 +142,15 @@ double IGD(string function,string algo,string opt_data,int run,int obj,int pop,i
     // }
     opt_num=0;
     while(opt>>get_value){
-        true_opt[opt_num][0]=get_value;
+        // true_opt[opt_num][0]=get_value;
+        tmp_opt[0]=get_value;
+        
         for(int k=1;k<obj;k++){
             opt>>get_value;
-            true_opt[opt_num][k]=get_value;
+            tmp_opt[k]=get_value;
+            // true_opt[opt_num][k]=get_value;
         }
+        true_opt.push_back(tmp_opt);
         opt_num++;
 
     }

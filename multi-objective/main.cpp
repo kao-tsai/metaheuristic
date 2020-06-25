@@ -4,11 +4,13 @@
 #include<string.h>
 #include<vector>
 #include"evaluate.cpp"
-#include"NSGAII/bnsgaii.h"
-#include"SE/se.h"
+// #include"NSGAII/bnsgaii.h"
+// #include"SE/se.h"
 // #include"MOPSO/mopso.h"
-#include"MOPSO/mopso(noWH).h"
+// #include"MOPSO/mopso(noWH).h"
 #include"SEDE/sede.h"
+#include"MOEAD/moead.h"
+#include"AGMOPSO/agmopso.h"
 #include<fstream>
 #include <math.h>
 #include <algorithm>
@@ -18,18 +20,14 @@ int main(int argc,char **argv)
 {
     clock_t start,finish;
     double duration;
-    // cout<<"Algorithm:"<<argv[1]<<endl;                      //nsga2
-    // cout<<"Number of runs:"<<argv[2]<<endl;          //default 30
-    // cout<<"Number of iterations:"<<argv[3]<<endl;//default 250
                  
    
     if(!strcmp(argv[1],"bnsga2"))
     {
-        // cout<<"Number of population:"<<argv[4]<<endl;//default 500
         
-        bnsgaii search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atof(argv[5]),atof(argv[6]),argv[7]);
+        // bnsgaii search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atof(argv[5]),atof(argv[6]),argv[7]);
         
-        search.run();
+        // search.run();
 
         int run_num=atoi(argv[2]);
         int pop_num=atoi(argv[4]);
@@ -63,8 +61,8 @@ int main(int argc,char **argv)
     else if(!strcmp(argv[1],"mopso")){
         cout<<"Number of population:"<<argv[4]<<endl;     
         start=clock();
-        mopso search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atof(argv[5]),atoi(argv[6]),argv[7]);
-        search.run();
+        // mopso search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atof(argv[5]),atoi(argv[6]),argv[7]);
+        // search.run();
         finish=clock();
         duration=(double)(finish-start)/CLOCKS_PER_SEC;
         
@@ -99,8 +97,8 @@ int main(int argc,char **argv)
     if(!strcmp(argv[1],"se"))
     {
         start=clock();
-        se search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),atoi(argv[6]),atoi(argv[7]),atoi(argv[8]),argv[9],atof(argv[10]),atof(argv[11]));
-        search.run();
+        // se search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),atoi(argv[6]),atoi(argv[7]),atoi(argv[8]),argv[9],atof(argv[10]),atof(argv[11]));
+        // search.run();
         finish=clock();
         duration=(double)(finish-start)/CLOCKS_PER_SEC;
         int run_num=atoi(argv[2]);
@@ -140,7 +138,7 @@ int main(int argc,char **argv)
         
         duration=(double)(finish-start)/CLOCKS_PER_SEC;
         int run_num=atoi(argv[2]);
-        int pop_num=atoi(argv[4]);
+        int pop_num=atoi(argv[4]);//2 obj
         string func_name=argv[9];
         double tmp;
         double sum_IGD=0;
@@ -149,7 +147,7 @@ int main(int argc,char **argv)
         ofstream output_igd;
         output_igd.open("pareto/"+func_name+"/sede/IGD.txt");
         for(int i=0;i<run_num;i++){
-            tmp=IGD(func_name,"sede","download_opt",i,2,pop_num,1000);
+            tmp=IGD(func_name,"sede","download_opt",i,atoi(argv[12]),pop_num,1000);
             sum_IGD+=tmp;
             output_igd<<tmp<<endl;
         }
@@ -159,13 +157,82 @@ int main(int argc,char **argv)
         ofstream output_sp;
         output_sp.open("pareto/"+func_name+"/sede/SP.txt");
         for(int i=0;i<run_num;i++){
-            tmp=SP(func_name,"sede","download_opt",i,2,pop_num,1000);
+            tmp=SP(func_name,"sede","download_opt",i,atoi(argv[12]),pop_num,1000);
             sum_SP+=tmp;
             output_sp<<tmp<<endl;
         }
         output_sp<<sum_SP/run_num<<endl;
         output_sp.close();
         cout<<fixed<<setprecision(4)<<duration<<".sec"<<endl;
+    }
+    if(!strcmp(argv[1],"moead"))
+    {
+        moead search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),atof(argv[6]),atof(argv[7]),argv[8]);
+        
+        search.run();
+
+        // int run_num=atoi(argv[2]);
+        // int pop_num=atoi(argv[4])+1;
+        // string func_name=argv[8];
+        // double tmp;
+        // double sum_IGD=0;
+        // double sum_SP=0;
+        // double sum_MS=0;
+        // ofstream output_igd;
+        // output_igd.open("pareto/"+func_name+"/moead/IGD.txt");
+        // for(int i=0;i<run_num;i++){
+        //     tmp=IGD(func_name,"moead","download_opt",i,2,pop_num,1000);
+        //     sum_IGD+=tmp;
+        //     output_igd<<tmp<<endl;
+        // }
+        // output_igd<<sum_IGD/run_num<<endl;
+        // output_igd.close();
+
+        // ofstream output_sp;
+        // output_sp.open("pareto/"+func_name+"/moead/SP.txt");
+        // for(int i=0;i<run_num;i++){
+        //     tmp=SP(func_name,"moead","download_opt",i,2,pop_num,1000);
+        //     sum_SP+=tmp;
+        //     output_sp<<tmp<<endl;
+        // }
+        // output_sp<<sum_SP/run_num<<endl;
+        // output_sp.close();
+        
+    }
+    if(!strcmp(argv[1],"agmopso"))
+    {
+        agmopso search(atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),atof(argv[6]),atof(argv[7]),argv[8]);
+        
+        search.run();
+
+        int run_num=atoi(argv[2]);
+        // int pop_num=atoi(argv[4])+1;
+        int pop_num=105;//3 obj
+        string func_name=argv[8];
+        double tmp;
+        double sum_IGD=0;
+        double sum_SP=0;
+        double sum_MS=0;
+        ofstream output_igd;
+        output_igd.open("pareto/"+func_name+"/agmopso/IGD.txt");
+        for(int i=0;i<run_num;i++){
+            tmp=IGD(func_name,"agmopso","download_opt",i,3,pop_num,1000);
+            sum_IGD+=tmp;
+            output_igd<<tmp<<endl;
+        }
+        output_igd<<sum_IGD/run_num<<endl;
+        output_igd.close();
+
+        ofstream output_sp;
+        output_sp.open("pareto/"+func_name+"/agmopso/SP.txt");
+        for(int i=0;i<run_num;i++){
+            tmp=SP(func_name,"agmopso","download_opt",i,3,pop_num,1000);
+            sum_SP+=tmp;
+            output_sp<<tmp<<endl;
+        }
+        output_sp<<sum_SP/run_num<<endl;
+        output_sp.close();
+        
     }
     return 0;
 

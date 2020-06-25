@@ -23,7 +23,7 @@ class test_problem{
         solution1 ub;
         solution1 lb;
         vector<int> xbits;
-    
+        double k;
         population1 SCH(population1&);
         population1 FON(population1&);
         population1 KUR(population1&);
@@ -44,6 +44,13 @@ class test_problem{
         population1 UF8(population1&);
         population1 UF9(population1&);
         population1 UF10(population1&);
-
+        
+        population1 DTLZ1(population1&);
+        population1 DTLZ2(population1&);
+        population1 DTLZ3(population1&);
+        population1 DTLZ4(population1&);
+        population1 DTLZ5(population1&);
+        population1 DTLZ6(population1&);
+        population1 DTLZ7(population1&);
 }; 
 #endif

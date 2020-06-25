@@ -264,453 +264,100 @@ test_problem::test_problem(string func_name){
             xbits[i]=30;
         }
     }
+    else if(func_name=="DTLZ1"){
+        iobj_num = 3;
+        k=5;
+        idimension = iobj_num+k-1;
+        ub.assign(idimension, 0);
+        lb.assign(idimension, 0);
+        xbits.assign(idimension,0);
+        
+        for(int i=0;i<idimension;i++){
+            lb[i] = 0;
+            ub[i] = 1;
+            xbits[i]=30;
+        }
+    }
+    else if(func_name=="DTLZ2"){
+        iobj_num = 3;
+        k=10;
+        idimension = iobj_num+k-1;
+        ub.assign(idimension, 0);
+        lb.assign(idimension, 0);
+        xbits.assign(idimension,0);
+        for(int i=0;i<idimension;i++){
+            lb[i] = 0;
+            ub[i] = 1;
+            xbits[i]=30;
+        }
+    }
+    else if(func_name=="DTLZ3"){
+        iobj_num = 3;
+        k=10;
+        idimension = iobj_num+k-1;
+        ub.assign(idimension, 0);
+        lb.assign(idimension, 0);
+        xbits.assign(idimension,0);
+        for(int i=0;i<idimension;i++){
+            lb[i] = 0;
+            ub[i] = 1;
+            xbits[i]=30;
+        }
+    }
+    else if(func_name=="DTLZ4"){
+        iobj_num = 3;
+        k=10;
+        idimension = iobj_num+k-1;
+        ub.assign(idimension, 0);
+        lb.assign(idimension, 0);
+        xbits.assign(idimension,0);
+        for(int i=0;i<idimension;i++){
+            lb[i] = 0;
+            ub[i] = 1;
+            xbits[i]=30;
+        }
+    }
+    else if(func_name=="DTLZ5"){
+        iobj_num = 3;
+        k=10;
+        idimension = iobj_num+k-1;
+        ub.assign(idimension, 0);
+        lb.assign(idimension, 0);
+        xbits.assign(idimension,0);
+        for(int i=0;i<idimension;i++){
+            lb[i] = 0;
+            ub[i] = 1;
+            xbits[i]=30;
+        }
+    }
+    else if(func_name=="DTLZ6"){
+        iobj_num = 3;
+        k=10;
+        idimension = iobj_num+k-1;
+        ub.assign(idimension, 0);
+        lb.assign(idimension, 0);
+        xbits.assign(idimension,0);
+        for(int i=0;i<idimension;i++){
+            lb[i] = 0;
+            ub[i] = 1;
+            xbits[i]=30;
+        }
+    }
+    else if(func_name=="DTLZ7"){
+        iobj_num = 3;
+        k=20;
+        idimension = iobj_num+k-1;
+        ub.assign(idimension, 0);
+        lb.assign(idimension, 0);
+        xbits.assign(idimension,0);
+        for(int i=0;i<idimension;i++){
+            lb[i] = 0;
+            ub[i] = 1;
+            xbits[i]=30;
+        }
+    }
 }
-/*
-double mofunc::mofunc_cal(vector<double> value, vector<double> &fit){
-    if(func_name=="SCH"){
-        double sum1 = 0;
-        double sum2 = 0;
-        
-        sum1 = pow(value[0],2);
-        fit[0] = sum1;
-        
-        sum2 = pow((value[0]-2),2);
-        fit[1] = sum2;
-    }
-    else if(func_name=="FON"){
-        double sum1 = 0;
-        double sum2 = 0;
-        
-        for(int j=0;j<dimension;j++){
-            sum1 += pow(value[j]-1/sqrt(3),2);
-        }
-        sum1 *= -1;
-        sum1 = 1-exp(sum1);
-        fit[0] = sum1;
-            
-        for(int j=0;j<dimension;j++){
-            sum2 += pow(value[j]+1/sqrt(3),2);
-        }
-        sum2 *= -1;
-        sum2 = 1-exp(sum2);
-        fit[1] = sum2;
-    }
-    else if(func_name=="POL"){
-        double sum1 = 0;
-        double sum2 = 0;
-        double A1 = 0.5*sin(1)-2*cos(1)+sin(2)-1.5*cos(2);
-        double A2 = 1.5*sin(1)-cos(1)+2*sin(2)-0.5*cos(2);
-        double B1 = 0.5*sin(value[0])-2*cos(value[0])+sin(value[1])-1.5*cos(value[1]);
-        double B2 = 1.5*sin(value[0])-cos(value[0])+2*sin(value[1])-0.5*cos(value[1]);
 
-        sum1 = 1+pow((A1-B1),2)+pow((A2-B2),2);
-        fit[0] = sum1;
-        
-        sum2 = pow((value[0]+3),2)+pow((value[1]+1),2);
-        fit[1] = sum2;
-    }
-    else if(func_name=="KUR"){
-        double sum1 = 0;
-        double sum2 = 0;
-        
-        for(int j=0;j<dimension-1;j++){
-            sum1 += -10*exp(-0.2*sqrt(pow(value[j],2)+pow(value[j+1],2)));
-        }
-        fit[0] = sum1;
-        
-        for(int j=0;j<dimension;j++){
-            sum2 += pow(abs(value[j]),0.8) + 5*sin(pow(value[j],3));
-        }
-        fit[1] = sum2;
-    }
-    else if(func_name=="ZDT1"){
-        double sum1 = 0;
-        double sum2 = 0;
-        double g = 0;
-
-        sum1 = value[0];
-        fit[0] = sum1;
-
-        for(int j=1;j<dimension;j++){
-            g += value[j];
-        }
-        g = 1 + 9 * g / (dimension-1);
-        
-        sum2 = g*(1-sqrt(value[0]/g));
-        fit[1] = sum2;
-    }
-    else if(func_name=="ZDT2"){
-        double sum1 = 0;
-        double sum2 = 0;
-        double g = 0;
-
-        sum1 = value[0];
-        fit[0] = sum1;
-        
-        for(int j=1;j<dimension;j++){
-            g += value[j];
-        }
-        g = 1 + (9 * g / (dimension-1));
-        
-        sum2 = g*(1-pow(value[0]/g, 2));
-        fit[1] = sum2;
-    }
-    else if(func_name=="ZDT3"){
-        double sum1 = 0;
-        double sum2 = 0;
-        double g = 0;
-
-        sum1 = value[0];
-        fit[0] = sum1;
-
-        for(int j=1;j<dimension;j++){
-            g += value[j];
-        }
-        g = 1 + 9 * g / (dimension-1);
-
-        sum2 = g * (1 - sqrt(value[0]/g) - (value[0]/g)*sin(10*M_PI*value[0]));
-        fit[1] = sum2;
-    }
-    else if(func_name=="ZDT4"){
-        double sum1 = 0;
-        double sum2 = 0;
-        double g = 0;
-
-        sum1 = value[0];
-        fit[0] = sum1;
-
-        for(int j=1;j<dimension;j++){
-            g += pow(value[j],2) - 10*cos(4*M_PI*value[j]);
-        }
-        g = 1 + 10 * (dimension-1) + g;
-            
-        sum2 = g*(1-sqrt(value[0]/g));
-        fit[1] = sum2;
-    }
-    else if(func_name=="ZDT6"){
-        double sum1 = 0;
-        double sum2 = 0;
-        double g = 0;
-
-        sum1 = 1 - exp(-4*value[0]) * pow(sin(6*M_PI*value[0]),6);
-        fit[0] = sum1;
-        
-        for(int j=1;j<dimension;j++){
-            g += value[j];
-        }
-        g = 1 + 9 * pow(g / (dimension-1),0.25);
-            
-        sum2 = g * (1 - pow(sum1/g,2));
-        fit[1] = sum2;
-    }
-    else if(func_name=="UF1"){
-        unsigned int j, count1, count2;
-        double sum1, sum2, yj;
-        
-        sum1 = 0.0;
-        count1 = 0;
-        for(j = 2; j <= dimension; j++){
-            yj = value[j-1] - sin(6.0*PI*value[0] + j*PI/dimension);
-            yj = yj * yj;
-            if(j % 2 == 1) {
-                sum1 += yj;
-                count1++;
-            } 
-        }
-        fit[0] = (value[0] + 2.0 * sum1 / (double)count1);
-        
-        sum2 = 0.0;
-        count2 = 0;
-        for(j = 2; j <= dimension; j++){
-            yj = value[j-1] - sin(6.0*PI*value[0] + j*PI/dimension);
-            yj = yj * yj;
-            if(j % 2 == 0) {
-                sum2 += yj;
-                count2++;
-            } 
-        }
-        fit[1] = (1.0 - sqrt(value[0]) + 2.0 * sum2 / (double)count2);
-    }
-    else if(func_name=="UF2"){
-        unsigned int j, count1, count2;
-        double sum1, sum2, yj;
-        
-        sum1 = 0.0;
-        count1 = 0;
-        for(j = 2; j <= dimension; j++) {
-            if(j % 2 == 1) {
-                yj = value[j-1]-0.3*value[0]*(value[0]*cos(24.0*PI*value[0]+4.0*j*PI/dimension)+2.0)*cos(6.0*PI*value[0]+j*PI/dimension);
-                sum1 += yj*yj;
-                count1++;
-            }
-        }
-        fit[0] = (value[0] + 2.0 * sum1 / (double)count1);
-            
-        sum2  = 0.0;
-        count2 = 0;
-        for(j = 2; j <= dimension; j++) {
-            if(j % 2 == 0) {
-                yj = value[j-1]-0.3*value[0]*(value[0]*cos(24.0*PI*value[0]+4.0*j*PI/dimension)+2.0)*sin(6.0*PI*value[0]+j*PI/dimension);
-                sum2 += yj*yj;
-                count2++;
-            } 
-        }
-        fit[1] = (1.0 - sqrt(value[0]) + 2.0 * sum2 / (double)count2);
-    }
-    else if(func_name=="UF3"){
-        unsigned int j, count1, count2;
-        double sum1, prod1,sum2, prod2, yj, pj;
-            
-        sum1 = 0.0;
-        count1 = 0;
-        prod1 = 1.0;
-        for(j = 2; j <= dimension; j++) {
-            yj = value[j-1]-pow(value[0],0.5*(1.0+3.0*(j-2.0)/(dimension-2.0)));
-            pj = cos(20.0*yj*PI/sqrt(j+0.0));
-            if (j % 2 == 1) {
-                sum1  += yj*yj;
-                prod1 *= pj;
-                count1++;
-            }
-        }
-        fit[0] = (value[0] + 2.0*(4.0*sum1 - 2.0*prod1 + 2.0) / (double)count1);
-            
-        sum2 = 0.0;
-        count2 = 0;
-        prod2  = 1.0;
-        for(j = 2; j <= dimension; j++) {
-            yj = value[j-1]-pow(value[0],0.5*(1.0+3.0*(j-2.0)/(dimension-2.0)));
-            pj = cos(20.0*yj*PI/sqrt(j+0.0));
-            if (j % 2 == 0) {
-                sum2  += yj*yj;
-                prod2 *= pj;
-                count2++;
-            } 
-            
-        }
-        fit[1] = (1.0 - sqrt(value[0]) + 2.0*(4.0*sum2 - 2.0*prod2 + 2.0) / (double)count2);
-    }
-    else if(func_name=="UF4"){
-        unsigned int j, count1, count2;
-        double sum1, sum2, yj, hj;
-            
-        sum1 = 0.0;
-        count1 = 0;
-        for(j = 2; j <= dimension; j++) {
-            yj = value[j-1]-sin(6.0*PI*value[0]+j*PI/dimension);
-            hj = fabs(yj)/(1.0+exp(2.0*fabs(yj)));
-            if (j % 2 == 1) {
-                sum1  += hj;
-                count1++;
-            }
-        }
-        fit[0] = (value[0] + 2.0*sum1 / (double)count1);
-            
-        sum2 = 0.0;
-        count2 = 0;
-        for(j = 2; j <= dimension; j++) {
-            yj = value[j-1]-sin(6.0*PI*value[0]+j*PI/dimension);
-            hj = fabs(yj)/(1.0+exp(2.0*fabs(yj)));
-            if (j % 2 == 0) {
-                sum2  += hj;
-                count2++;
-            }
-        }
-        fit[1] = (1.0 - value[0]*value[0]	+ 2.0*sum2 / (double)count2);
-    }
-    else if(func_name=="UF5"){
-        unsigned int j, count1, count2;
-        double sum1, sum2, yj, hj, N, E;
-            
-        sum1 = 0.0;
-        count1 = 0;
-        N = 10.0; E = 0.1;
-        for(j = 2; j <= dimension; j++) {
-            yj = value[j-1]-sin(6.0*PI*value[0]+j*PI/dimension);
-            hj = 2.0*yj*yj - cos(4.0*PI*yj) + 1.0;
-            if (j % 2 == 1) {
-                sum1  += hj;
-                count1++;
-            }
-        }
-        hj = (0.5/N + E)*fabs(sin(2.0*N*PI*value[0]));
-        fit[0] = (value[0] + hj + 2.0*sum1 / (double)count1);
-            
-        sum2 = 0.0;
-        count2 = 0;
-        N = 10.0; E = 0.1;
-        for(j = 2; j <= dimension; j++) {
-            yj = value[j-1]-sin(6.0*PI*value[0]+j*PI/dimension);
-            hj = 2.0*yj*yj - cos(4.0*PI*yj) + 1.0;
-            if (j % 2 == 0) {
-                sum2  += hj;
-                count2++;
-            } 
-        }
-        hj = (0.5/N + E)*fabs(sin(2.0*N*PI*value[0]));
-        fit[1] = (1.0 - value[0] + hj + 2.0*sum2 / (double)count2);
-    }
-    else if(func_name=="UF6"){
-        unsigned int j, count1, count2;
-        double sum1, prod1, sum2, prod2, yj, hj, pj, N, E;
-        N = 2.0; E = 0.1;
-
-        sum1 = 0.0;
-        count1 = 0;
-        prod1 = 1.0;
-        for(j = 2; j <= dimension; j++) {
-            yj = value[j-1]-sin(6.0*PI*value[0]+j*PI/dimension);
-            pj = cos(20.0*yj*PI/sqrt(j+0.0));
-            if (j % 2 == 1) {
-                sum1  += yj*yj;
-                prod1 *= pj;
-                count1++;
-            }
-        }
-
-        hj = 2.0*(0.5/N + E)*sin(2.0*N*PI*value[0]);
-        if(hj<0.0) hj = 0.0;
-        fit[0] = (value[0] + hj + 2.0*(4.0*sum1 - 2.0*prod1 + 2.0) / (double)count1);
-        
-        sum2 = 0.0;
-        count2 = 0;
-        prod2  = 1.0;
-        for(j = 2; j <= dimension; j++) {
-            yj = value[j-1]-sin(6.0*PI*value[0]+j*PI/dimension);
-            pj = cos(20.0*yj*PI/sqrt(j+0.0));
-            if (j % 2 == 0) {
-                sum2  += yj*yj;
-                prod2 *= pj;
-                count2++;
-            } 
-        }
-
-        hj = 2.0*(0.5/N + E)*sin(2.0*N*PI*value[0]);
-        if(hj<0.0) hj = 0.0;
-        fit[1] = (1.0 - value[0] + hj + 2.0*(4.0*sum2 - 2.0*prod2 + 2.0) / (double)count2);
-    }
-    else if(func_name=="UF7"){
-        unsigned int j, count1, count2;
-        double sum1, sum2, yj;
-            
-        sum1 = 0.0;
-        count1 = 0;
-        for(j = 2; j <= dimension; j++) {
-            yj = value[j-1] - sin(6.0*PI*value[0]+j*PI/dimension); 
-            if (j % 2 == 1) {
-                sum1  += yj*yj;
-                count1++;
-            }
-        }
-        yj = pow(value[0],0.2);
-        fit[0] = (yj + 2.0*sum1 / (double)count1);
-            
-        sum2 = 0.0;
-        count2 = 0;
-        for(j = 2; j <= dimension; j++) {
-            yj = value[j-1] - sin(6.0*PI*value[0]+j*PI/dimension);
-            if (j % 2 == 0) {
-                sum2  += yj*yj;
-                count2++;
-            } 
-        }
-        yj = pow(value[0],0.2);
-        fit[1] = (1.0 - yj + 2.0*sum2 / (double)count2);
-    }
-    else if(func_name=="UF8"){
-        unsigned int j, count1, count2, count3;
-		double sum1, sum2, sum3, yj;
-		
-		sum1   = sum2   = sum3   = 0.0;
-		count1 = count2 = count3 = 0;
-		for(j = 3; j <= dimension; j++) 
-		{
-			yj = value[j-1] - 2.0*value[1]*sin(2.0*PI*value[0]+j*PI/dimension);
-			if(j % 3 == 1) 
-			{
-				sum1  += yj*yj;
-				count1++;
-			} 
-			else if(j % 3 == 2) 
-			{
-				sum2  += yj*yj;
-				count2++;
-			}
-			else
-			{
-				sum3  += yj*yj;
-				count3++;
-			}
-		}
-		fit[0] = cos(0.5*PI*value[0])*cos(0.5*PI*value[1]) + 2.0*sum1 / (double)count1;
-		fit[1] = cos(0.5*PI*value[0])*sin(0.5*PI*value[1]) + 2.0*sum2 / (double)count2;
-		fit[2] = sin(0.5*PI*value[0]) + 2.0*sum3 / (double)count3;
-    }
-    else if(func_name=="UF9"){
-        unsigned int j, count1, count2, count3;
-		double sum1, sum2, sum3, yj, E;
-		
-		E = 0.1;
-		sum1   = sum2   = sum3   = 0.0;
-		count1 = count2 = count3 = 0;
-		for(j = 3; j <= dimension; j++) 
-		{
-			yj = value[j-1] - 2.0*value[1]*sin(2.0*PI*value[0]+j*PI/dimension);
-			if(j % 3 == 1) 
-			{
-				sum1  += yj*yj;
-				count1++;
-			} 
-			else if(j % 3 == 2) 
-			{
-				sum2  += yj*yj;
-				count2++;
-			}
-			else
-			{
-				sum3  += yj*yj;
-				count3++;
-			}
-		}
-		yj = (1.0+E)*(1.0-4.0*(2.0*value[0]-1.0)*(2.0*value[0]-1.0));
-		if(yj<0.0) yj = 0.0;
-		fit[0] = 0.5*(yj + 2*value[0])*value[1] + 2.0*sum1 / (double)count1;
-		fit[1] = 0.5*(yj - 2*value[0] + 2.0)*value[1] + 2.0*sum2 / (double)count2;
-		fit[2] = 1.0 - value[1] + 2.0*sum3 / (double)count3;
-    }
-    else if(func_name=="UF10"){
-        unsigned int j, count1, count2, count3;
-		double sum1, sum2, sum3, yj, hj;
-		
-		sum1   = sum2   = sum3   = 0.0;
-		count1 = count2 = count3 = 0;
-		for(j = 3; j <= dimension; j++) 
-		{
-			yj = value[j-1] - 2.0*value[1]*sin(2.0*PI*value[0]+j*PI/dimension);
-			hj = 4.0*yj*yj - cos(8.0*PI*yj) + 1.0;
-			if(j % 3 == 1) 
-			{
-				sum1  += hj;
-				count1++;
-			} 
-			else if(j % 3 == 2) 
-			{
-				sum2  += hj;
-				count2++;
-			}
-			else
-			{
-				sum3  += hj;
-				count3++;
-			}
-		}
-		fit[0] = cos(0.5*PI*value[0])*cos(0.5*PI*value[1]) + 2.0*sum1 / (double)count1;
-		fit[1] = cos(0.5*PI*value[0])*sin(0.5*PI*value[1]) + 2.0*sum2 / (double)count2;
-		fit[2] = sin(0.5*PI*value[0]) + 2.0*sum3 / (double)count3;
-
-    }
-
-}*/
 test_problem::population1 test_problem::SCH(population1 &all_sol){
     int obj_num=2;
     population1 all_sol_obj(all_sol.size(),solution1(obj_num));
@@ -1014,7 +661,7 @@ test_problem::population1 test_problem::UF2(population1 &all_sol){
         return all_sol_obj;
     }
     test_problem::population1 test_problem::UF4(population1 &all_sol){
-        unsigned int j, count1, count2;
+        unsigned int count1, count2;
         double sum1, sum2, yj, hj;
         int obj_num=2;
         int dimension=30;
@@ -1022,7 +669,7 @@ test_problem::population1 test_problem::UF2(population1 &all_sol){
         for(int i=0;i<all_sol.size();i++){
             sum1 = 0.0;
             count1 = 0;
-            for(j = 2; j <= dimension; j++) {
+            for(int j = 2; j <= dimension; j++) {
                 yj = all_sol[i][j-1]-sin(6.0*PI* all_sol[i][0]+(j*PI)/dimension);
                 hj = fabs(yj)/(1.0+exp(2.0*fabs(yj)));
                 if (j % 2 == 1) {
@@ -1034,7 +681,7 @@ test_problem::population1 test_problem::UF2(population1 &all_sol){
                 
             sum2 = 0.0;
             count2 = 0;
-            for(j = 2; j <= dimension; j++) {
+            for(int j = 2; j <= dimension; j++) {
                 yj = all_sol[i][j-1]-sin(6.0*PI*all_sol[i][0]+j*PI/dimension);
                 hj = fabs(yj)/(1.0+exp(2.0*fabs(yj)));
                 if (j % 2 == 0) {
@@ -1042,7 +689,7 @@ test_problem::population1 test_problem::UF2(population1 &all_sol){
                     count2++;
                 }
             }
-            all_sol_obj[j][1] = (1.0 -  all_sol[i][0]*all_sol[i][0]	+ 2.0*sum2 / (double)count2);
+            all_sol_obj[i][1] = (1.0 -  all_sol[i][0]*all_sol[i][0]	+ 2.0*sum2 / (double)count2);
         }
         return all_sol_obj;
     }
@@ -1264,6 +911,153 @@ test_problem::population1 test_problem::UF2(population1 &all_sol){
             all_sol_obj[i][0] = cos(0.5*PI*all_sol[i][0])*cos(0.5*PI*all_sol[i][1]) + 2.0*sum1 / (double)count1;
             all_sol_obj[i][1] = cos(0.5*PI*all_sol[i][0])*sin(0.5*PI*all_sol[i][1]) + 2.0*sum2 / (double)count2;
             all_sol_obj[i][2] = sin(0.5*PI*all_sol[i][0]) + 2.0*sum3 / (double)count3;
+        }
+        return all_sol_obj;
+    }
+
+    test_problem::population1 test_problem::DTLZ1(population1 &all_sol){
+        double g=0;
+		int obj_num=3;
+        int dimension=obj_num+k-1;
+        population1 all_sol_obj(all_sol.size(),solution1(obj_num));
+        for(int i=0;i<all_sol.size();i++){
+            g=0;
+            for(int j=obj_num-1;j<obj_num+k-1;j++){
+                g+=pow(all_sol[i][j]-0.5,2.0)-cos(20*M_PI*(all_sol[i][j]-0.5));
+            }
+            g=(g+k)*100;
+            
+            all_sol_obj[i][0]=(1+g)*0.5*all_sol[i][0]*all_sol[i][1];
+            all_sol_obj[i][1]=(1+g)*0.5*all_sol[i][0]*(1-all_sol[i][1]);
+            all_sol_obj[i][2]=(1+g)*0.5*(1-all_sol[i][0]);
+        }
+        return all_sol_obj;
+    }
+
+    test_problem::population1 test_problem::DTLZ2(population1 &all_sol){
+        double g=0;
+		int obj_num=3;
+        int dimension=obj_num+k-1;
+        population1 all_sol_obj(all_sol.size(),solution1(obj_num));
+        for(int i=0;i<all_sol.size();i++){
+            g=0;
+            for(int j=obj_num-1;j<obj_num+k-1;j++){
+                g+=pow(all_sol[i][j]-0.5,2.0);
+            }
+            
+            all_sol_obj[i][0]=(1+g)*cos(all_sol[i][0]*M_PI*0.5)*cos(all_sol[i][1]*M_PI*0.5);
+            all_sol_obj[i][1]=(1+g)*cos(all_sol[i][0]*M_PI*0.5)*sin(all_sol[i][1]*M_PI*0.5);
+            all_sol_obj[i][2]=(1+g)*sin(all_sol[i][0]*M_PI*0.5);
+        }
+        return all_sol_obj;
+    }
+
+    test_problem::population1 test_problem::DTLZ3(population1 &all_sol){
+        double g=0;
+		int obj_num=3;
+        int dimension=obj_num+k-1;
+        population1 all_sol_obj(all_sol.size(),solution1(obj_num));
+        for(int i=0;i<all_sol.size();i++){
+            g=0;
+            for(int j=obj_num-1;j<obj_num+k-1;j++){
+                g+=pow(all_sol[i][j]-0.5,2.0)-cos(20*M_PI*(all_sol[i][j]-0.5));
+            }
+            g=(g+k)*100;
+            
+            all_sol_obj[i][0]=(1+g)*cos(all_sol[i][0]*M_PI*0.5)*cos(all_sol[i][1]*M_PI*0.5);
+            all_sol_obj[i][1]=(1+g)*cos(all_sol[i][0]*M_PI*0.5)*sin(all_sol[i][1]*M_PI*0.5);
+            all_sol_obj[i][2]=(1+g)*sin(all_sol[i][0]*M_PI*0.5);
+        }
+        return all_sol_obj;
+    }
+
+    test_problem::population1 test_problem::DTLZ4(population1 &all_sol){
+        double g=0;
+		int obj_num=3;
+        int dimension=obj_num+k-1;
+        double alpha=100;
+        population1 all_sol_obj(all_sol.size(),solution1(obj_num));
+        for(int i=0;i<all_sol.size();i++){
+            g=0;
+            for(int j=obj_num-1;j<obj_num+k-1;j++){
+                g+=pow(all_sol[i][j]-0.5,2.0);
+            }
+
+            all_sol_obj[i][0]=(1+g)*cos(pow(all_sol[i][0],alpha)*M_PI*0.5)*cos(pow(all_sol[i][1],alpha)*M_PI*0.5);
+            all_sol_obj[i][1]=(1+g)*cos(pow(all_sol[i][0],alpha)*M_PI*0.5)*sin(pow(all_sol[i][1],alpha)*M_PI*0.5);
+            all_sol_obj[i][2]=(1+g)*sin(pow(all_sol[i][0],alpha)*M_PI*0.5);
+        }
+        return all_sol_obj;
+    }
+
+    test_problem::population1 test_problem::DTLZ5(population1 &all_sol){
+        double g=0;
+		int obj_num=3;
+        int dimension=obj_num+k-1;
+        solution1 delta(obj_num-1,0.0);
+        population1 all_sol_obj(all_sol.size(),solution1(obj_num));
+        for(int i=0;i<all_sol.size();i++){
+            g=0;
+            for(int j=obj_num-1;j<obj_num+k-1;j++)
+                g+=pow(all_sol[i][j]-0.5,2.0);
+            
+            delta[0]=(M_PI*0.5*all_sol[i][0]);
+            for(int j=1;j<obj_num-1;j++)
+                delta[j]=M_PI/(4.0*(1+g))*(1+2*g*all_sol[i][j]);
+            // for(int j=0;j<obj_num-1;j++)
+            //     delta[j]=(1.0+2.0*g*all_sol[i][j])/(2.0*(1.0+g));
+
+            all_sol_obj[i][0]=(1+g)*cos(delta[0])*cos(delta[1]);
+            all_sol_obj[i][1]=(1+g)*cos(delta[0])*sin(delta[1]);
+            all_sol_obj[i][2]=(1+g)*sin(delta[0]);
+        }
+        return all_sol_obj;
+    }
+    test_problem::population1 test_problem::DTLZ6(population1 &all_sol){
+        double g=0;
+		int obj_num=3;
+        int dimension=obj_num+k-1;
+        solution1 delta(obj_num-1,0.0);
+        population1 all_sol_obj(all_sol.size(),solution1(obj_num));
+        for(int i=0;i<all_sol.size();i++){
+            g=0;
+            for(int j=obj_num-1;j<obj_num+k-1;j++)
+                g+=pow(all_sol[i][j],0.1);
+
+            delta[0]=(M_PI*0.5*all_sol[i][0]);
+
+            for(int j=1;j<obj_num-1;j++)
+                delta[j]=(M_PI/(4.0*(1+g)))*(1.0+2.0*g*all_sol[i][j]);
+            
+            all_sol_obj[i][0]=(1+g)*cos(delta[0])*cos(delta[1]);
+            all_sol_obj[i][1]=(1+g)*cos(delta[0])*sin(delta[1]);
+            all_sol_obj[i][2]=(1+g)*sin(delta[0]);
+        }
+        return all_sol_obj;
+    }
+    test_problem::population1 test_problem::DTLZ7(population1 &all_sol){
+        double g=0,h=0;
+		int obj_num=3;
+        int dimension=obj_num+k-1;
+        solution1 delta(obj_num-1,0.0);
+        population1 all_sol_obj(all_sol.size(),solution1(obj_num));
+        for(int i=0;i<all_sol.size();i++){
+
+            all_sol_obj[i][0]=all_sol[i][0];
+            all_sol_obj[i][1]=all_sol[i][1];
+
+            g=0;
+            for(int j=obj_num-1;j<obj_num+k-1;j++)
+                g+=all_sol[i][j];
+            g=1+(9.0/k)*g;
+            
+
+            h=0;
+            for(int j=0;j<obj_num-1;j++)
+                h+=(all_sol_obj[i][j]/(1.0+g))*(1+sin(3*M_PI*all_sol_obj[i][j]));
+            h=obj_num-h;
+            
+            all_sol_obj[i][2]=(1+g)*h;
         }
         return all_sol_obj;
     }

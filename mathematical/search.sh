@@ -13,12 +13,58 @@ make
 # ./search tlbo 1 1000 30 30 Ackley
 
 # MFO
-# ./search mfo 30 3000 30 30 Ackley
-# ./search mfo 30 3000 30 30 Rastrigin
-# ./search mfo 30 3000 30 30 Sphere
-# ./search mfo 30 3000 30 30 Rosenbrock
-# ./search mfo 30 3000 30 30 Michalewicz
-# ./search mfo 1 3000 30 30 F16
+# ./search mfo 30 10000 30 30 Ackley
+# ./search mfo 30 10000 30 30 Rastrigin
+./search mfo 30 10000 30 30 Sphere
+# ./search mfo 30 10000 30 30 Rosenbrock
+# ./search mfo 30 10000 30 30 Michalewicz
+# ./search mfo 30 10000 30 30 Griewank10
+# ./search mfo 30 10000 30 2 Schaffer2
+# ./search mfo 30 10000 30 30 Schwefel
+# ./search mfo 30 10000 30 2 Bohachevsky1
+# ./search mfo 30 10000 30 30 Sum_Square
+# ./search mfo 30 10000 30 2 Booth
+# ./search mfo 30 10000 30 30 Zakharov
+# ./search mfo 30 10000 30 2 Three_Hump_Camel
+# ./search mfo 30 10000 30 2 De_Jong5
+# ./search mfo 30 10000 30 2 Beale
+# ./search mfo 30 10000 30 28 Powell
+
+# MFODE
+# ./search mfode 30 10000 30 30 Ackley
+# ./search mfode 30 10000 30 30 Rastrigin
+# ./search mfode 30 10000 30 30 Sphere
+# ./search mfode 30 10000 30 30 Rosenbrock
+# ./search mfode 30 10000 30 30 Michalewicz
+# ./search mfode 30 10000 30 30 Griewank10
+# ./search mfode 30 10000 30 2 Schaffer2
+# ./search mfode 30 10000 30 30 Schwefel
+# ./search mfode 30 10000 30 2 Bohachevsky1
+# ./search mfode 30 10000 30 30 Sum_Square
+# ./search mfode 30 10000 30 2 Booth
+# ./search mfode 30 10000 30 30 Zakharov
+# ./search mfode 30 10000 30 2 Three_Hump_Camel
+# ./search mfode 30 10000 30 2 De_Jong5
+# ./search mfode 30 10000 30 2 Beale
+# ./search mfode 30 10000 30 28 Powell
+
+#DE
+# ./search de 30 10000 30 30 Ackley
+# ./search de 30 10000 30 30 Rastrigin
+# ./search de 30 10000 30 30 Sphere
+# ./search de 30 10000 30 30 Rosenbrock
+# ./search de 30 10000 30 30 Michalewicz
+# ./search de 30 10000 30 30 Griewank10
+# ./search de 30 10000 30 2 Schaffer2
+# ./search de 30 10000 30 30 Schwefel
+# ./search de 30 10000 30 2 Bohachevsky1
+# ./search de 30 10000 30 30 Sum_Square
+# ./search de 30 10000 30 2 Booth
+# ./search de 30 10000 30 30 Zakharov
+# ./search de 30 10000 30 2 Three_Hump_Camel
+# ./search de 30 10000 30 2 De_Jong5
+# ./search de 30 10000 30 2 Beale
+# ./search de 30 10000 30 28 Powell
 
 #PSO
 # ./search pso 30 3000 30 30 Ackley
